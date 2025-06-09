@@ -64,7 +64,7 @@ function playChord(chordName) {
 }
 
 
-fetch("/recursive_chords.json")
+fetch("../recursive_chords.json")
     .then(res => res.json())
     .then(data => {
         chordsData = data;
