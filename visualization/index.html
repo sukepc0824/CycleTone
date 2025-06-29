@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+    <style>
+        canvas {
+            border-radius: 50%;
+            outline: 50px solid #444;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        class Chords {
+            constructor(chords) {
+                this.chords = chords
+            }
+
+            chordsPredictDataFormat(chords_sample) {
+                chords_sample.unshift('<s>')
+                const updatedSample = [];
+                for (let i = 0; i < chords_sample.length; i++) {
+                    updatedSample.push(chords_sample[i]);
+                    if (i < chords_sample.length) {
+                        updatedSample.push("next");
+                    }
+                }
+
+                return updatedSample
+            }
+
+            next(chords_sample) {
+                const updatedSample = this.chordsPredictDataFormat(chords_sample)
+                let chords_temp = this.chords;
+                for (let i = 0; i < updatedSample.length; i++) {
+                    chords_temp = chords_temp[updatedSample[i]]
+                }
+                let returnData = []
+                for (let key in chords_temp) {
+                    returnData.push(key, chords_temp[key].value);
+                }
+                return returnData
+            }
+            nextKeys(chords_sample) {
+                const aliases = {
+                    'Cmaj7': 'C',
+                    'Cadd9': 'C',
+                    'Csus4': 'C',
+                    'Fmaj7': 'F',
+                    'Fadd9': 'F',
+                };
+                const data = this.next(chords_sample)
+                const merged = {};
+
+                for (const [chord, value] of Object.entries(data)) {
+                    const isMinor = chord.match(/m(?!a)/); // 'm' but not 'maj'
+                    const base = aliases[chord] && !isMinor ? aliases[chord] : chord;
+                    merged[base] = (merged[base] || 0) + value;
+                }
+
+                return result;
+            }
+        }
+
+        class Arrow {
+            constructor(from, to, value) {
+                this.from = from
+                this.to = to
+                this.value = value
+            }
+
+            get keys_position() {
+                let pos = []
+                for (let i = 0; i < 12; i++) {
+                    let x = -240 * Math.cos((i + 3) * (Math.PI / 6)) + 240
+                    let y = -240 * Math.sin((i + 3) * (Math.PI / 6)) + 240
+                    pos.push({
+                        x: x,
+                        y: y
+                    })
+                }
+                return pos
+            }
+
+            render() {
+                let pos = this.keys_position
+                let x1 = pos[this.from].x,
+                    y1 = pos[this.from].y,
+                    x2 = pos[this.to].x,
+                    y2 = pos[this.to].y,
+                    size = 14
+                stroke(255)
+                strokeWeight(2)
+                line(x1, y1, x2, y2);
+
+                fill(255);
+                textSize(30);
+                strokeWeight(15)
+                stroke(0)
+                textAlign(CENTER, CENTER);
+                text(this.value, (x1 + x2) / 2, (y1 + y2) / 2);
+
+                push();  // 状態保存
+                let angle = atan2(y2 - y1, x2 - x1);
+                translate(x2, y2);
+                rotate(angle);
+                noStroke();
+                triangle(0, 0, -size, -size / 2, -size, size / 2);
+                pop();  // 状態復元
+            }
+        }
+
+
+        async function getChords(path) {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error('Failed to fetch recursive_chords.json');
+            }
+            const chords = await response.json();
+            return chords
+        }
+
+        function setup() {
+            createCanvas(480, 480);
+            background('BLACK');
+
+            fill(0);
+        }
+
+        arrow = new Arrow(0, 10, "49")
+        arrow2 = new Arrow(0, 1, "19")
+        function draw() {
+            background(0)
+            arrow.render()
+            arrow2.render()
+        }
+
+        (async () => {
+            const chords = new Chords(await getChords('/recursive_chords.json'));
+            const result = chords.nextKeys(['C']);
+            console.log(result)
+        })();
+    </script>
+</body>
+
+</html>
