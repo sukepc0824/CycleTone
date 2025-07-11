@@ -16,6 +16,52 @@
 
 <body>
     <script>
+        const fifthCircleMap = {
+            'C': 0, 'G': 1, 'D': 2, 'A': 3, 'E': 4, 'B': 5,
+            'F#': 6, 'Gb': 6,
+            'Db': 7, 'C#': 7,
+            'Ab': 8, 'G#': 8,
+            'Eb': 9, 'D#': 9,
+            'Bb': 10, 'A#': 10,
+            'F': 11,
+        };
+
+        const qualities = ['maj', 'min', 'm', 'dim', 'aug'];
+
+        function parseChord(chordStr) {
+            const rootMatch = chordStr.match(/^([A-G][b#]?)/);
+            if (!rootMatch) return null;
+
+            const rootBase = rootMatch[1];                  // 例: C, Bb, F#
+            const rest = chordStr.slice(rootBase.length);   // 例: m7, dim7...
+
+            let attr = null;
+            for (const q of qualities) {
+                if (rest.startsWith(q)) {
+                    attr = q === 'min' ? 'm' : q;
+                    break;
+                }
+            }
+
+            const suffix = attr ? rest.slice(attr.length) : rest;
+
+            const fifthCircleNumber = fifthCircleMap[rootBase];
+            if (fifthCircleNumber === undefined) return null;
+
+            const tensions = [];
+            const tensionMatch = suffix.match(/\d+/g);
+            if (tensionMatch) {
+                tensions.push(...tensionMatch.map(Number));
+            }
+
+            return {
+                root: rootBase,
+                attr,
+                fifthCircleNumber,
+                tensions
+            };
+        }
+
         class Chords {
             constructor(chords) {
                 this.chords = chords
@@ -46,24 +92,31 @@
                 }
                 return returnData
             }
+            nextChords(chords_sample) {
+                return this.next(chords_sample)
+                    .reduce((acc, curr, idx, arr) => {
+                        if (idx % 2 === 0) {
+                            const chordObj = parseChord(curr);
+                            if (chordObj) {
+                                chordObj.value = arr[idx + 1];
+                                acc.push(chordObj);
+                            }
+                        }
+                        return acc;
+                    }, []);
+            }
             nextKeys(chords_sample) {
-                const aliases = {
-                    'Cmaj7': 'C',
-                    'Cadd9': 'C',
-                    'Csus4': 'C',
-                    'Fmaj7': 'F',
-                    'Fadd9': 'F',
-                };
-                const data = this.next(chords_sample)
-                const merged = {};
-
-                for (const [chord, value] of Object.entries(data)) {
-                    const isMinor = chord.match(/m(?!a)/); // 'm' but not 'maj'
-                    const base = aliases[chord] && !isMinor ? aliases[chord] : chord;
-                    merged[base] = (merged[base] || 0) + value;
+                const chordObjs = this.nextChords(chords_sample);
+                const fifthCircleNumberMap = {};
+                for (const chord of chordObjs) {
+                    if (fifthCircleNumberMap[chord.fifthCircleNumber]) {
+                        fifthCircleNumberMap[chord.fifthCircleNumber] += chord.value;
+                    } else {
+                        fifthCircleNumberMap[chord.fifthCircleNumber] = chord.value;
+                    }
                 }
+                return Object.entries(fifthCircleNumberMap).map(([f, value]) => ({ f, value }));
 
-                return result;
             }
         }
 
@@ -132,17 +185,23 @@
             fill(0);
         }
 
-        arrow = new Arrow(0, 10, "49")
-        arrow2 = new Arrow(0, 1, "19")
+        let renderList = []
         function draw() {
             background(0)
-            arrow.render()
-            arrow2.render()
+            renderList.forEach(arrow => {
+                arrow.render();
+            });
         }
 
         (async () => {
             const chords = new Chords(await getChords('/recursive_chords.json'));
-            const result = chords.nextKeys(['C']);
+            const key = "Am7";
+            const result = chords.nextKeys([key]);
+            const n = parseChord(key).fifthCircleNumber;
+            console.log(n)
+            for (const key of result) {
+                renderList.push(new Arrow(n, key.f, Math.ceil(key.value * 100)));
+            }
             console.log(result)
         })();
     </script>
