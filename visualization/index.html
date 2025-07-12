@@ -62,6 +62,37 @@
             };
         }
 
+        function drawWavyArrow(x1, y1, x2, y2, waveCount = 5, amplitude = 16, arrowSize = 12) {
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+            let length = dist(x1, y1, x2, y2);
+            let angle = atan2(dy, dx);
+
+            // 波線の描画
+            push();
+            translate(x1, y1);
+            rotate(angle);
+            noFill();
+            stroke(255);
+            strokeWeight(2);
+            beginShape();
+            for (let i = 0; i <= waveCount; i++) {
+                let t = (i / waveCount) * (length - arrowSize);  // 矢印手前で止める
+                let y = sin(i * PI) * amplitude;
+                vertex(t, y);
+            }
+            endShape();
+
+            // >型の矢印
+            translate(length, 0);
+            rotate(0);
+            stroke(255);
+            line(0, 0, -arrowSize, -arrowSize / 2);
+            line(0, 0, -arrowSize, arrowSize / 2);
+            pop();
+        }
+
+
         class Chords {
             constructor(chords) {
                 this.chords = chords
@@ -110,28 +141,36 @@
                 const fifthCircleNumberMap = {};
                 for (const chord of chordObjs) {
                     if (fifthCircleNumberMap[chord.fifthCircleNumber]) {
-                        fifthCircleNumberMap[chord.fifthCircleNumber] += chord.value;
+                        fifthCircleNumberMap[chord.fifthCircleNumber].value += chord.value;
                     } else {
-                        fifthCircleNumberMap[chord.fifthCircleNumber] = chord.value;
+                        fifthCircleNumberMap[chord.fifthCircleNumber] = {
+                            value: chord.value,
+                            attr: chord.attr === 'm' ? 'minor' : "major"
+                        };
                     }
                 }
-                return Object.entries(fifthCircleNumberMap).map(([f, value]) => ({ f, value }));
-
+                console.log(fifthCircleNumberMap);
+                return Object.entries(fifthCircleNumberMap).map(([f, data]) => ({
+                    f,
+                    value: data.value,
+                    attr: data.attr
+                }));
             }
         }
 
         class Arrow {
-            constructor(from, to, value) {
+            constructor(from, to, value, attr) {
                 this.from = from
                 this.to = to
                 this.value = value
+                this.attr = attr;
             }
 
             get keys_position() {
                 let pos = []
                 for (let i = 0; i < 12; i++) {
-                    let x = -240 * Math.cos((i + 3) * (Math.PI / 6)) + 240
-                    let y = -240 * Math.sin((i + 3) * (Math.PI / 6)) + 240
+                    let x = -230 * Math.cos((i + 3) * (Math.PI / 6)) + 240
+                    let y = -230 * Math.sin((i + 3) * (Math.PI / 6)) + 240
                     pos.push({
                         x: x,
                         y: y
@@ -141,32 +180,80 @@
             }
 
             render() {
-                let pos = this.keys_position
-                let x1 = pos[this.from].x,
-                    y1 = pos[this.from].y,
-                    x2 = pos[this.to].x,
-                    y2 = pos[this.to].y,
-                    size = 14
-                stroke(255)
-                strokeWeight(2)
-                line(x1, y1, x2, y2);
+                if (this.from != this.to) {
+                    let pos = this.keys_position;
+                    let x1 = pos[this.from].x,
+                        y1 = pos[this.from].y,
+                        x2 = pos[this.to].x,
+                        y2 = pos[this.to].y,
+                        size = 24,
+                        waveCount = 4,
+                        wavelength = 1,
+                        amplitude = 100,
+                        resolution = 1;
 
-                fill(255);
-                textSize(30);
-                strokeWeight(15)
-                stroke(0)
-                textAlign(CENTER, CENTER);
-                text(this.value, (x1 + x2) / 2, (y1 + y2) / 2);
+                    let dx = x2 - x1;
+                    let dy = y2 - y1;
+                    let len = dist(x1, y1, x2, y2);
+                    let angle = atan2(dy, dx);
+                    let availableLength = len - size * 0.2;
+                    let totalWaveLength = waveCount * wavelength;
+                    let scaleFactor = 1;
 
-                push();  // 状態保存
-                let angle = atan2(y2 - y1, x2 - x1);
-                translate(x2, y2);
-                rotate(angle);
-                noStroke();
-                triangle(0, 0, -size, -size / 2, -size, size / 2);
-                pop();  // 状態復元
+                    if (availableLength < totalWaveLength) {
+                        scaleFactor = availableLength / totalWaveLength; // 波長を縮める
+                    }
+
+                    push();
+                    translate(x1, y1);
+                    rotate(angle);
+                    noFill();
+                    stroke((this.value * 30) + 40);
+                    strokeWeight(2);
+                    beginShape();
+                    for (let i = 0; i <= resolution; i++) {
+                        let t = (i / resolution) * availableLength;
+                        let theta = (t / (wavelength * scaleFactor)) * TWO_PI;
+                        let fadeRatio = sin((t / availableLength) * PI);
+                        let y = sin(theta) * amplitude * fadeRatio;
+                        vertex(t, y);
+                    }
+                    endShape();
+                    pop();
+
+                    fill(255);
+                    textSize(30);
+                    strokeWeight(8);
+                    stroke(0);
+                    textFont('Helvetica');
+                    textAlign(CENTER, CENTER);
+                    text(this.value,
+                        x2 - cos(angle) * 50,
+                        y2 - sin(angle) * 50);
+
+                    push();
+                    // 矢印の位置を少し手前にずらして波線と重なるように調整
+                    translate(
+                        x2 - cos(angle) * size * 0.15,
+                        y2 - sin(angle) * size * 0.15
+                    );
+                    rotate(angle);
+                    stroke((this.value * 30) + 40);
+                    strokeWeight(2);
+                    line(0, 0, -size, -size / 2);
+                    line(0, 0, -size, size / 2);
+                    pop();
+
+                }
             }
         }
+
+        let isMinorMode = false;
+        document.querySelector("body").addEventListener("click", () => {
+            isMinorMode = !isMinorMode;
+            document.querySelector("canvas").style.backgroundColor = isMinorMode ? "black" : "white";
+            document.querySelector("canvas").style.color = isMinorMode ? "white" : "black";
+        });
 
 
         async function getChords(path) {
@@ -188,21 +275,35 @@
         let renderList = []
         function draw() {
             background(0)
-            renderList.forEach(arrow => {
-                arrow.render();
-            });
+            //drawWavyArrow(50, 200, 350, 200);
+            if (isMinorMode) {
+                renderList.forEach(arrow => {
+                    if (arrow.attr === 'minor') {
+                        arrow.render();
+                    }
+                });
+            } else {
+                renderList.forEach(arrow => {
+                    if (arrow.attr === 'major'){
+                        arrow.render();
+                    };
+                });
+            }
         }
 
         (async () => {
             const chords = new Chords(await getChords('/recursive_chords.json'));
-            const key = "Am7";
+            const key = "C";
             const result = chords.nextKeys([key]);
             const n = parseChord(key).fifthCircleNumber;
-            console.log(n)
             for (const key of result) {
-                renderList.push(new Arrow(n, key.f, Math.ceil(key.value * 100)));
+                if (key.attr === 'minor') {
+                    renderList.push(new Arrow((n) % 12, (key.f-3+12) % 12, Math.ceil(key.value * 100), key.attr));
+                } else {
+                    renderList.push(new Arrow(n, key.f, Math.ceil(key.value * 100), key.attr));
+                }
             }
-            console.log(result)
+            console.log(chords.nextChords([key]))
         })();
     </script>
 </body>
