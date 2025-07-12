@@ -9,7 +9,8 @@
     <style>
         canvas {
             border-radius: 50%;
-            outline: 50px solid #444;
+            outline: 50px solid #000000;
+            border: none;
         }
     </style>
 </head>
@@ -92,7 +93,6 @@
             pop();
         }
 
-
         class Chords {
             constructor(chords) {
                 this.chords = chords
@@ -159,14 +159,15 @@
         }
 
         class Arrow {
-            constructor(from, to, value, attr) {
+            constructor(from, to, value, attr, isCurrentMajor) {
                 this.from = from
                 this.to = to
                 this.value = value
                 this.attr = attr;
+                this.isCurrentMajor = isCurrentMajor;
             }
 
-            get keys_position() {
+            get keys_position_large() {
                 let pos = []
                 for (let i = 0; i < 12; i++) {
                     let x = -230 * Math.cos((i + 3) * (Math.PI / 6)) + 240
@@ -179,13 +180,37 @@
                 return pos
             }
 
+            get keys_position_small() {
+                let pos = []
+                for (let i = 0; i < 12; i++) {
+                    let x = -170 * Math.cos((i + 3) * (Math.PI / 6)) + 240
+                    let y = -170 * Math.sin((i + 3) * (Math.PI / 6)) + 240
+                    pos.push({
+                        x: x,
+                        y: y
+                    })
+                }
+                return pos
+            }
+
             render() {
-                if (this.from != this.to) {
-                    let pos = this.keys_position;
-                    let x1 = pos[this.from].x,
-                        y1 = pos[this.from].y,
-                        x2 = pos[this.to].x,
-                        y2 = pos[this.to].y,
+                if (1 != 2) {
+                    let to_pos = [];
+                    let from_pos = [];
+                    if (this.isCurrentMajor) {
+                        to_pos = this.keys_position_large;
+                    } else {
+                        to_pos = this.keys_position_small;
+                    }
+                    if (this.attr === 'minor') {
+                        from_pos = this.keys_position_small;
+                    } else {
+                        from_pos = this.keys_position_large;
+                    }
+                    let x1 = to_pos[this.from].x,
+                        y1 = to_pos[this.from].y,
+                        x2 = from_pos[this.to].x,
+                        y2 = from_pos[this.to].y,
                         size = 24,
                         waveCount = 4,
                         wavelength = 1,
@@ -275,7 +300,21 @@
         let renderList = []
         function draw() {
             background(0)
-            //drawWavyArrow(50, 200, 350, 200);
+            strokeWeight(1);
+            noFill();
+            if (isMinorMode) {
+                stroke(200);
+                ellipse(width / 2, height / 2, 340, 340);
+                stroke(50);
+                ellipse(width / 2, height / 2, 460, 460);
+            } else {
+                stroke(50);
+                ellipse(width / 2, height / 2, 340, 340);
+                 stroke(200);
+                ellipse(width / 2, height / 2, 460, 460);
+            }
+            
+
             if (isMinorMode) {
                 renderList.forEach(arrow => {
                     if (arrow.attr === 'minor') {
@@ -284,7 +323,7 @@
                 });
             } else {
                 renderList.forEach(arrow => {
-                    if (arrow.attr === 'major'){
+                    if (arrow.attr === 'major') {
                         arrow.render();
                     };
                 });
@@ -293,14 +332,15 @@
 
         (async () => {
             const chords = new Chords(await getChords('/recursive_chords.json'));
-            const key = "C";
+            const key = "Am";
             const result = chords.nextKeys([key]);
             const n = parseChord(key).fifthCircleNumber;
+            const isCurrentMajor = parseChord(key).attr !== 'm';
             for (const key of result) {
                 if (key.attr === 'minor') {
-                    renderList.push(new Arrow((n) % 12, (key.f-3+12) % 12, Math.ceil(key.value * 100), key.attr));
+                    renderList.push(new Arrow((n) % 12, (key.f - 3 + 12) % 12, Math.ceil(key.value * 100), key.attr, isCurrentMajor));
                 } else {
-                    renderList.push(new Arrow(n, key.f, Math.ceil(key.value * 100), key.attr));
+                    renderList.push(new Arrow(n, key.f, Math.ceil(key.value * 100), key.attr, isCurrentMajor));
                 }
             }
             console.log(chords.nextChords([key]))
