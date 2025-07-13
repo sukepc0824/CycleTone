@@ -10,6 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz@0,14..32;1,14..32&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./index.js"></script>
@@ -18,11 +22,21 @@
         main {
             display: flex;
             position: absolute;
-            margin-top: 200px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            border-radius: 50%;
+        }
+
+        * {
+            font-family: 'Inter';
+            font-weight: 300;
         }
 
         body {
             background-color: #555;
+            margin-top: 400px;
         }
 
         .overlay {
@@ -31,17 +45,23 @@
             height: 100%;
             top: 0;
             left: 0;
-            background-color: rgba(204, 204, 204, 0);
-            z-index: 50;
+            background-color: rgba(0, 0, 0, 0);
+            z-index: 1000050;
+            width: 480px;
+            height: 480px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            ;
+            border-radius: 50%;
         }
 
         canvas {
             border-radius: 50%;
-            outline: 50px solid #000000;
+            outline: 50px solid #040404;
             border: none;
             margin: 60px;
             z-index: 100;
-            transform: scale(0.7);
         }
 
         .keys {
@@ -53,7 +73,7 @@
             top: 50%;
             border-radius: 50%;
             overflow: hidden;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(1.4);
         }
 
         .keys button:active {
@@ -82,67 +102,288 @@
             font-size: 15px;
             opacity: 0.7;
         }
+
+        .chord-name {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            z-index: 1000;
+            font-size: 72px;
+            position: absolute;
+        }
+
+        .chord-name .tention {
+            font-size: 30px;
+            margin-left: 4px;
+        }
+
+
+        .edge {
+            background-color: #fff;
+            width: 0px;
+            height: 240px;
+            position: absolute;
+            left: 50%;
+            top: calc(11.3%);
+            transition: all 0.3s ease-out;
+            transform: rotate(0deg);
+            z-index: 2000;
+            transform-origin: bottom center;
+        }
+
+        .edge img {
+            width: 108px;
+            transform: translateY(10px);
+        }
+
+        .edge .sub {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .modal {
+            background-color: #000000;
+            width: 480px;
+            height: 480px;
+            z-index: 100000;
+            position: absolute;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 60px;
+            display: none;
+        }
+
+        .progression {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 600px;
+            white-space: nowrap;
+            max-height: 400px;
+            overflow-y: scroll;
+        }
+
+        span.arrow {
+            opacity: 0.6;
+        }
+
+        p.border {
+            font-size: 20px;
+            margin: 5px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .progression span:last-child {
+            color: #ff4800;
+        }
+
+        .mode {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            z-index: 10000;
+            font-size: 28px;
+            margin-top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mode>div {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mode img {
+            width: 20px;
+            height: 25px;
+        }
+
+        .notificaiton {
+            position: absolute;
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: #eee;
+            font-size: 44px;
+            white-space: nowrap;
+            padding: 10px 16px;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="keys"></div>
     <main>
-        <div class="keys"></div>
-        <div class="overlay"></div>
+        <div class="screen">
+            <div class="chord-name"><span class="root"></span><span class="tention"></span></div>
+            <div class="edge">
+                <div class="sub">
+                    <div class="div" style="width: 22px; height: 22px; border-radius: 50%; background-color: #ff4800;">
+                    </div>
+                </div>
+            </div>
+            <div class="overlay" ondblclick="buttonInDouble()"></div>
+            <div class="modal">
+                <div class="progression">
+                    <p></p>
+                </div>
+            </div>
+            <div class="mode">
+                <div class="attr"><img src="./assets/major.svg">major</div>
+                <div class="key"><img src="./assets/key.svg">C/Am</div>
+            </div>
+            <div class="notificaiton">
+                Key: G/Em
+            </div>
+        </div>
     </main>
     <script>
+        let mode = { main: "suggestion", attr: "major" }
+        function numberToKey(f) {
+            if (mode.attr === "minor") {
+                return fifthCircleMapReversed[(f + 15) % 12];
+            } else {
+                return fifthCircleMapReversed[f];
+            }
+        }
+
+        function keyToNumber(f) {
+            if (mode.attr === "minor") {
+                return fifthCircleMap[f] + 9 % 12; // minor mode shifts the circle by 3
+            } else {
+                return fifthCircleMap[f];
+            }
+        }
+
         const fifthCircleMap = {
-            'C': 0, 'G': 1, 'D': 2, 'A': 3, 'E': 4, 'B': 5,
-            'F#': 6, 'Gb': 6,
-            'Db': 7, 'C#': 7,
-            'Ab': 8, 'G#': 8,
-            'Eb': 9, 'D#': 9,
-            'Bb': 10, 'A#': 10,
+            'C': 0,
+            'G': 1,
+            'D': 2,
+            'A': 3,
+            'E': 4,
+            'B': 5,
+            'F#': 6,
+            'C#': 7,
+            'G#': 8,
+            'D#': 9,
+            'A#': 10,
             'F': 11,
         };
+
+        const fifthCircleMapReversed = {
+            0: 'C',
+            1: 'G',
+            2: 'D',
+            3: 'A',
+            4: 'E',
+            5: 'B',
+            6: 'F#',
+            7: 'C#',
+            8: 'G#',
+            9: 'D#',
+            10: 'A#',
+            11: 'F',
+        };
+        const fifthCircleNumberTensionMap = {
+            '11': 2,
+            '6': 3,
+            'M7': 5,
+            'aug': 8,
+            '7': 10,
+            '4': 11,
+        }
+        const fifthCircleNumberTensionMapReversed = {
+            2: '11',
+            3: '6',
+            5: 'M7',
+            8: 'aug',
+            10: '7',
+            11: '4',
+        }
         const chords_type = {
             'major': [0, 1, 4],
+            'minor': [0, 1, 9],
         }
 
         const qualities = ['maj', 'min', 'm', 'dim', 'aug'];
+
+        function stringifyChord(chordObj) {
+            const { root, attr, tensions } = chordObj;
+            if (!root) return null;
+
+            let qualityStr = '';
+            if (attr === 'minor') {
+                qualityStr = 'm'; // または 'min'、必要に応じて切り替え可能
+            } else if (attr !== 'major') {
+                qualityStr = attr;
+            }
+
+            // テンションが null や空なら、何も追加しない
+            const tensionStr = tensions ? tensions : '';
+
+            return [root, qualityStr, tensionStr];
+        }
 
         function parseChord(chordStr) {
             const rootMatch = chordStr.match(/^([A-G][b#]?)/);
             if (!rootMatch) return null;
 
-            const rootBase = rootMatch[1];                  // 例: C, Bb, F#
-            const rest = chordStr.slice(rootBase.length);   // 例: m7, dim7...
+            const rootBase = rootMatch[1];
+            const rest = chordStr.slice(rootBase.length);
 
             let attr = null;
+            let qualityMatched = '';
+
             for (const q of qualities) {
                 if (rest.startsWith(q)) {
-                    attr = q === 'min' ? 'm' : q;
+                    attr = q === 'min' || q === 'm' ? 'minor' : q;
+                    qualityMatched = q;
                     break;
                 }
             }
 
-            const suffix = attr ? rest.slice(attr.length) : rest;
+            const suffix = rest.slice(qualityMatched.length);
 
-            const fifthCircleNumber = fifthCircleMap[rootBase];
+            const fifthCircleNumber = keyToNumber(rootBase);
             if (fifthCircleNumber === undefined) return null;
+            let tensionStr = suffix.trim();
 
-            const tensions = [];
-            const tensionMatch = suffix.match(/\d+/g);
-            if (tensionMatch) {
-                tensions.push(...tensionMatch.map(Number));
+
+            if (tensionStr.startsWith('M7')) {
+                tensionStr = 'M7' + tensionStr.slice(2); // ex: M7b9 → M7b9
             }
+
+            if (!attr) attr = 'major';
 
             return {
                 root: rootBase,
                 attr,
                 fifthCircleNumber,
-                tensions
+                tensions: tensionStr || null
             };
         }
 
+
         class Chart {
-            constructor(data) {
+            constructor(data, isLabel) {
                 this.data = data;
+                this.isLabel = isLabel
             }
             render() {
                 angleMode(DEGREES);;
@@ -167,7 +408,7 @@
 
                     let innerRadius = map((100 - ((d.value ** 0.6) * 7)), 0, 100, outerRadius * 0.45, outerRadius);
 
-                    fill((d.value * 1.4) ** 1.15 + 100);
+                    fill((d.value * 1.4) ** 1.4 + 100);
                     noStroke();
 
 
@@ -184,6 +425,7 @@
                     }
                     endShape(CLOSE);
 
+
                     let midAngle = startAngle + angleStep / 2;
                     let labelX = cos(midAngle) * (outerRadius + 20);
                     let labelY = sin(midAngle) * (outerRadius + 20);
@@ -191,8 +433,33 @@
                     textSize(12);
                     text(d.label, labelX, labelY);
                 }
-
                 pop();
+                if (this.isLabel) {
+                    /*
+                    push();
+                    translate(240, 240);
+                    textAlign(CENTER, CENTER);
+                    textSize(28);
+                    fill("#7290a3");
+
+                    for (let i = 0; i < total; i++) {
+                        let angle = i * angleStep + angleStep / 2;
+                        let labelRadius = 214;
+
+                        let x = cos(angle - 105) * labelRadius;
+                        let y = sin(angle - 105) * labelRadius;
+
+                        push();
+                        translate(x, y);
+                        rotate(angle - 15); // 文字を中心に向ける（時計回りに+90度）
+                        text(fifthCircleNumberTensionMapReversed[i], 0, 0);
+                        pop();
+                    }
+
+                    pop();
+
+*/
+                }
             }
         }
 
@@ -250,54 +517,90 @@
                     } else {
                         fifthCircleNumberMap[chord.fifthCircleNumber] = {
                             value: chord.value,
-                            attr: chord.attr === 'm' ? 'minor' : "major"
+                            attr: chord.attr === 'minor' ? 'minor' : "major"
                         };
                     }
                 }
                 let data = Object.entries(fifthCircleNumberMap).map(([f, data]) => ({
-                    f : attr === 'minor' ? parseInt(f) - 3 : parseInt(f),
+                    f: attr === 'minor' ? parseInt(f) - 3 : parseInt(f),
                     value: data.value * 100,
                     attr: data.attr
                 }));
                 return data.filter(obj => obj.attr === attr);
             }
-            nextTensions(chords_sample, key, attr) {
+            nextTensions(chords_sample, attr, key) {
                 const chordObjs = this.nextChords(chords_sample);
-                return chordObjs
-                    .filter(obj => obj.root === key && obj.attr === attr)
-                    .map(obj => ({ tensions: obj.tensions, value: obj.value }));
+
+                const tensionMap = {};
+                let total = 0;
+
+                for (const chord of chordObjs) {
+                    if (chord.root === key && chord.attr === attr) {
+                        const tension = chord.tensions || 'no tension';
+                        if (!tensionMap[tension]) {
+                            tensionMap[tension] = 0;
+                        }
+                        tensionMap[tension] += chord.value;
+                        total += chord.value;
+                    }
+                }
+
+                return Object.entries(tensionMap).map(([tension, value]) => ({
+                    f: fifthCircleNumberTensionMap[tension],
+                    value: (value / total) * 10
+                }));
             }
         }
 
-
         class Notes {
-            constructor(root, attr) {
-                this.root = root;//数字
-                this.attr = attr;
-                this.chord = []
+            constructor(chord) {
+                this.chord = chord;
+                this.root = keyToNumber(chord.root);
+                this.attr = chord.attr;
+                this.notes = []
                 chords_type[this.attr].forEach((noteIndex, i) => {
                     const note = (this.root + noteIndex)
-                    this.chord.push(note)
+                    this.notes.push(note)
                 });
+                if (chord.tensions) {
+                    this.notes.push(fifthCircleNumberTensionMap[chord.tensions] + this.root)
+                }
             }
-            render() {
-                /*
-                this.chord.forEach(note1 => {
+            get position() {
+                let positions = [];
+                for (let i = 0; i < 12; i++) {
+                    let angle = map(i, 0, 12, 0, 360);
+                    let x = cos(angle - 90) * 220 + 240;
+                    let y = sin(angle - 90) * 220 + 240;
+                    positions.push({ x: x, y: y });
+                }
+                return positions;
+            }
+            renderLine() {
+                this.notes.forEach(note1 => {
                     note1 = (note1 + 12) % 12;
-                    let x1 = new Arrow().keys_position_large[note1].x,
-                        y1 = new Arrow().keys_position_large[note1].y;
-                    this.chord.forEach(note2 => {
+                    let x1 = this.position[note1].x,
+                        y1 = this.position[note1].y;
+                    this.notes.forEach(note2 => {
                         note2 = (note2 + 12) % 12;
                         if (note1 !== note2) {
-                            let x2 = new Arrow().keys_position_large[note2].x,
-                                y2 = new Arrow().keys_position_large[note2].y;
-                            stroke(200 * random(0.9, 1));
+                            let x2 = this.position[note2].x,
+                                y2 = this.position[note2].y;
+                            stroke(200 * random(0.8, 0.9));
                             strokeWeight(4);
                             line(x1, y1, x2, y2);
                         }
                     })
                 })
-                    */
+            }
+            renderChordName() {
+                const chord_name = stringifyChord(this.chord)
+                document.querySelector('.chord-name .root').innerHTML = chord_name[0] + chord_name[1]
+                document.querySelector('.tention').innerHTML = chord_name[2]
+            }
+            render() {
+                this.renderLine()
+                this.renderChordName();
             }
         }
 
@@ -314,23 +617,45 @@
             background(0)
             strokeWeight(1);
             noFill();
+            textFont('Inter');
 
             if (mode.main === "suggestion") {
+                document.querySelector(".chord-name").innerHTML = '<span class="root"></span><span class="tention"></span>'
+                document.querySelector(".mode").style.display = "flex"
                 chart.render();
             }
             if (mode.main === "chord") {
+                tensionChart.render();
                 chord.render();
+                document.querySelector(".mode").style.display = "none"
             }
 
         }
 
 
         let buttonList = [];
-        let notesList = [1, 3];
-        let chart, chord;
+        let curChord = {
+            root: null,
+            attr: null,
+            tensions: null
+        }
+        let chart, chord, tensionChart;
+
         function buttonIn(index) {
             buttonList.push(index);
-            chord = new Notes(index, "major");
+            let tensions;
+            if (buttonList.length == 2) {
+                curChord.tensions = fifthCircleNumberTensionMapReversed[(index - keyToNumber(curChord.root) + 12) % 12];
+            } else if (buttonList.length < 2) {
+                curChord.root = numberToKey(index)
+                curChord.tensions = null
+                curChord.attr = mode.attr;
+                tensionChart = new Chart(chords.nextTensions(chord_progression, mode.attr, numberToKey(index)).map(tension => {
+                    tension.f += keyToNumber(curChord.root)
+                    return tension;
+                }), true);
+            }
+            chord = new Notes(curChord);
 
             if (buttonList.length == 0) {
                 mode.main = "suggestion";
@@ -351,18 +676,25 @@
             }
         }
 
-        let mode = { main: "suggestion", attr: "major" }
-        document.querySelector("body").addEventListener("click", () => {
+        function buttonInDouble() {
+            let index = keyToNumber(curChord.root)
+            document.querySelector(".edge").style.transform = `rotate(${index * 30}deg)`
+            chord_progression.push(stringifyChord(curChord).join(""))
+            console.log(chord_progression)
+            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
+        }
+
+        document.querySelector(".overlay").addEventListener("pointerdown", () => {
             const isMinorMode = mode.attr === "minor";
             mode.attr = isMinorMode ? "major" : "minor";
-            chart = new Chart(chords.nextKeys(keys, mode.attr))
+            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
+            document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
         });
 
         const chords = new Chords(data);
+        chord_progression = ["C"]
+        chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
         set_keys();
-        keys = ["G"]
-        console.log(chords.nextKeys(keys,"major"))
-        chart = new Chart(chords.nextKeys(keys, mode.attr))
     </script>
 </body>
 

@@ -7,7 +7,7 @@ function set_keys() {
     for (let i = 0; i < 12; i++) {
         const $key = $(`<button class="key" midi="${mejour_key_midi_tones[i]}" onpointerdown="buttonIn(${i})" onpointerup="buttonOut(${i})" onpointerleave="buttonOut(${i})">
             <p>${mejour_key_array[i]}</p>
-            <p class="sub">${minor_key_array[i],i}</p>
+            <p class="sub">${minor_key_array[i]}</p>
         </button>`).appendTo(".keys");
     }
 
@@ -27,3 +27,76 @@ async function getChords(path) {
     const chords = await response.json();
     return chords
 }
+
+const doubleKeyThreshold = 400; // ミリ秒以内をダブル押しと判定
+let lastKeyDown = {};
+
+document.addEventListener("keydown", function (event) {
+    const key = Number(event.key);
+    const now = Date.now();
+
+    if (isNaN(key)) return;
+
+    const isDouble = lastKeyDown[key] && (now - lastKeyDown[key]) < doubleKeyThreshold;
+    lastKeyDown[key] = now;
+
+    if (!event.repeat) {
+        if (isDouble) {
+            buttonInDouble(key)
+        } else {
+            buttonIn(key);
+        }
+    }
+});
+
+document.addEventListener("keyup", function (event) {
+    const key = Number(event.key);
+    if (!isNaN(key)) {
+        buttonOut(key);
+    }
+});
+
+const minimumDistance = 30;
+let startX = 0;
+let startY = 0;
+let endY = 0;
+
+window.addEventListener('pointerdown', (e) => {
+    startX = e.pageX;
+    startY = e.pageY;
+});
+
+window.addEventListener('pointermove', (e) => {
+    endY = e.pageY;
+});
+
+window.addEventListener('pointerup', (e) => {
+    const deltaY = endY - startY;
+
+    if (Math.abs(deltaY) > minimumDistance) {
+        if (deltaY < 0) {
+            console.log('上スワイプ');
+            document.querySelector('.modal').classList.add('active')
+            const p = document.querySelector('.modal .progression p');
+
+            p.innerHTML = "";
+
+            chord_progression.forEach((chord, index) => {
+                const span = document.createElement('span');
+                span.textContent = chord;
+                p.appendChild(span);
+
+                if (index < chord_progression.length - 1) {
+                    const arrow = document.createElement('span');
+                    arrow.textContent = " -> ";
+                    arrow.classList.add("arrow")
+                    p.appendChild(arrow);
+                }
+            });
+
+        } else {
+            console.log('下スワイプ');
+            document.querySelector('.modal').classList.remove('active')
+        }
+    }
+});
