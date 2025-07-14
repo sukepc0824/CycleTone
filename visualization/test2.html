@@ -32,6 +32,7 @@
         * {
             font-family: 'Inter';
             font-weight: 300;
+            user-select: none !important;
         }
 
         body {
@@ -684,7 +685,7 @@
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
         }
 
-        document.querySelector(".overlay").addEventListener("pointerdown", () => {
+        document.querySelector(".overlay").addEventListener("click", () => {
             const isMinorMode = mode.attr === "minor";
             mode.attr = isMinorMode ? "major" : "minor";
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
