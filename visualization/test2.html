@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz@0,14..32;1,14..32&display=swap"
         rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap" rel="stylesheet">    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./index.js"></script>
@@ -30,7 +33,7 @@
         }
 
         * {
-            font-family: 'Inter';
+            font-family: 'Fragment Mono';
             font-weight: 300;
             user-select: none !important;
         }
@@ -618,7 +621,7 @@
             background(0)
             strokeWeight(1);
             noFill();
-            textFont('Inter');
+            textFont('Fragment Mono');
 
             if (mode.main === "suggestion") {
                 document.querySelector(".chord-name").innerHTML = '<span class="root"></span><span class="tention"></span>'
