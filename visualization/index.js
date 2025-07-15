@@ -88,7 +88,7 @@ window.addEventListener('pointerup', (e) => {
 
                 if (index < chord_progression.length - 1) {
                     const arrow = document.createElement('span');
-                    arrow.textContent = " -> ";
+                    arrow.textContent = " → ";
                     arrow.classList.add("arrow")
                     p.appendChild(arrow);
                 }
