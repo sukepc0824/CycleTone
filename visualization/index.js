@@ -32,7 +32,12 @@ const doubleKeyThreshold = 400; // ミリ秒以内をダブル押しと判定
 let lastKeyDown = {};
 
 document.addEventListener("keydown", function (event) {
-    const key = Number(event.key);
+    let key = Number(event.key);
+    if (event.key === 'a') {
+        key = 10;
+    } else if (event.key === 'b') {
+        key = 11;
+    }
     const now = Date.now();
 
     if (isNaN(key)) return;
@@ -50,7 +55,12 @@ document.addEventListener("keydown", function (event) {
 });
 
 document.addEventListener("keyup", function (event) {
-    const key = Number(event.key);
+    let key = Number(event.key);
+    if (event.key === 'a') {
+        key = 10;
+    } else if (event.key === 'b') {
+        key = 11;
+    }
     if (!isNaN(key)) {
         buttonOut(key);
     }

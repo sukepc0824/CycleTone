@@ -224,7 +224,6 @@
         }
 
         .screen {
-            outline: 50px solid #040404;
             width: 480px;
             height: 480px;
             position: relative;
@@ -276,7 +275,6 @@
 </head>
 
 <body>
-    <div class="keys"></div>
     <main>
         <div class="screen">
             <div class="compose">
@@ -834,7 +832,6 @@
         const chords = new Chords(data);
         chord_progression = ["C"]
         chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-        set_keys();
         circleText(chord_progression)
     </script>
 </body>
