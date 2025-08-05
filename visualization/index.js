@@ -33,6 +33,7 @@ let lastKeyDown = {};
 
 document.addEventListener("keydown", function (event) {
     let key = Number(event.key);
+    console.log(event.key);
     if (event.key === 'a') {
         key = 10;
     } else if (event.key === 'b') {
