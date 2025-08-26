@@ -5,7 +5,7 @@ function set_keys() {
     const minor_key_midi_tones = [57, 64, 59, 54, 61, 56, 63, 58, 65, 60, 55, 62];
     const minor_key_array = ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "Ab", "Eb", "Bb", "F", "C"];
     for (let i = 0; i < 12; i++) {
-        const $key = $(`<button class="key" midi="${mejour_key_midi_tones[i]}" onpointerdown="buttonIn(${i})" onpointerup="buttonOut(${i})" onpointerleave="buttonOut(${i})">
+        const $key = $(`<button class="key" midi="${mejour_key_midi_tones[i]}" onpointerdown="buttonIn(${i})" onpointerup="buttonOut(${i})">
             <p>${mejour_key_array[i]}</p>
             <p class="sub">${minor_key_array[i]}</p>
         </button>`).appendTo(".keys");
@@ -110,4 +110,15 @@ window.addEventListener('pointerup', (e) => {
             document.querySelector('.modal').classList.remove('active')
         }
     }
+});
+
+const longPressThreshold = 500; // ミリ秒以上を長押しと判定
+let pressTimer = null;
+
+
+document.addEventListener('contextmenu', (event) => {
+    event.preventDefault(); // デフォルトの右クリックメニューを無効化
+    console.log('右クリック検知');
+    mode.main = "compose";
+     circleText(chord_progression)
 });

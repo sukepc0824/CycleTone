@@ -238,7 +238,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -309,6 +309,7 @@
     </main>
     <script>
         let mode = { main: "suggestion", attr: "major" }
+        let chart, chord, tensionChart;
         function numberToKey(f) {
             if (mode.attr === "minor") {
                 return fifthCircleMapReversed[(f + 15) % 12];
@@ -396,7 +397,7 @@
 
         function circleText(array) {
             const composeDiv = document.querySelector('.compose');
-            const radius = 216; // 半径
+            const radius = 216;
             const centerX = composeDiv.offsetWidth / 2;
             const centerY = composeDiv.offsetHeight / 2;
 
@@ -421,12 +422,27 @@
 
                 composeDiv.appendChild(element);
             });
+            for (let index = 0; index < array.length - 1; index++) {
+                const arrow = document.createElement('img');
+                arrow.src = './assets/arrow2.svg';
+                const radius = 215;
+                const angle = (((index - 1.5) / 12)) * 2 * Math.PI; // 配置する角度
+                const x = 240 + radius * Math.cos(angle) - 20; // X座標
+                const y = 240 + radius * Math.sin(angle) - 10.4; // Y座標
+                arrow.style.position = 'absolute';
+                arrow.style.display = 'flex';
+                arrow.style.alignItems = 'center';
+                arrow.style.justifyContent = 'center';
+                arrow.style.left = `${x}px`;
+                arrow.style.top = `${y}px`;
+                arrow.style.transform = `rotate(${angle + Math.PI / 2}rad)`;
+                composeDiv.appendChild(arrow);
+            }
         }
 
         function chordProgressionPlay(progression = chord_progression) {
             if (!progression || progression.length === 0) return;
             let index = 0;
-            console.log(mode.main)
             function playNextChord() {
                 const chordStr = progression[index];
                 const chordObj = parseChord(chordStr);
@@ -437,10 +453,10 @@
                     index = (index + 1) % progression.length;
                 }
             }
-
             let interval = setInterval(() => {
                 playNextChord();
                 if (index === 0) {
+                    releaseChord();
                     clearInterval(interval);
                 }
             }, 1000);
@@ -488,7 +504,6 @@
         const volume = new Tone.Volume(-4).toDestination(); // -10dB に設定
         const synth = new Tone.PolySynth(Tone.Synth).connect(volume);
 
-        // 音のオクターブをつけて変換する（例：'C' → 'C4'）
         function convertToNoteArray(indexArray, octave = 4) {
             return indexArray.map(i => {
                 const note = fifthCircleMapReversed[(i + 12) % 12];
@@ -758,6 +773,7 @@
             if (mode.main === "suggestion") {
                 document.querySelector(".chord-name").innerHTML = '<span class="root"></span><span class="tention"></span>'
                 document.querySelector(".mode").style.display = "flex"
+                document.querySelector(".element").style.transform = "translate(-50%, -50%)"
                 chart.render();
             }
             if (mode.main === "chord") {
@@ -766,7 +782,10 @@
                 document.querySelector(".mode").style.display = "none"
             }
             if (mode.main === 'compose') {
-                chord.render();
+                document.querySelector(".element").style.transform = "translate(-50%, -50%) scale(0.8)";
+                if (chord != null) {
+                    chord.render();
+                }
                 document.querySelector(".mode").style.display = "none"
             }
 
@@ -778,7 +797,6 @@
             attr: null,
             tensions: null
         }
-        let chart, chord, tensionChart;
 
         function buttonIn(index) {
             buttonList.push(index);
