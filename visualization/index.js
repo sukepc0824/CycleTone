@@ -3,7 +3,7 @@ function set_keys() {
     const mejour_key_tones = ["C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"];
     const mejour_key_midi_tones = [60, 55, 62, 57, 64, 59, 54, 61, 56, 63, 58, 65];
     const minor_key_midi_tones = [57, 64, 59, 54, 61, 56, 63, 58, 65, 60, 55, 62];
-    const minor_key_array = ["A", "E", "B", "F♯", "C♯", "G♯", "D♯", "Ab", "Eb", "Bb", "F", "C"];
+    const minor_key_array = ["D#m", "A#m", "Fm", "Cm", "Gm", "Dm", "Am", "Em", "Bm", "F#m", "C#m", "G#m"];
     for (let i = 0; i < 12; i++) {
         const $key = $(`<button class="key" midi="${mejour_key_midi_tones[i]}" onpointerdown="buttonIn(${i})" onpointerup="buttonOut(${i})">
             <p>${mejour_key_array[i]}</p>

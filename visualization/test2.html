@@ -298,7 +298,7 @@
                     </div>
                 </div>
                 <div class="mode">
-                    <div class="attr"><img src="./assets/major.svg">major</div>
+                    <!--<div class="attr"><img src="./assets/major.svg">major</div>-->
                     <div class="key"><img src="./assets/key.svg">C/Am</div>
                 </div>
                 <div class="notificaiton">
@@ -311,16 +311,17 @@
         let mode = { main: "suggestion", attr: "major" }
         let chart, chord, tensionChart;
         function numberToKey(f) {
-            if (mode.attr === "minor") {
-                return fifthCircleMapReversed[(f + 15) % 12];
+            if (5 <= f && f <= 8) {
+                return fifthCircleMapReversed[(f + 9) % 12];
             } else {
                 return fifthCircleMapReversed[f];
             }
+
         }
 
         function keyToNumber(f) {
-            if (mode.attr === "minor") {
-                return fifthCircleMap[f] + 9 % 12; // minor mode shifts the circle by 3
+            if (2 <= fifthCircleMap[f] && fifthCircleMap[f] <= 5) {
+                return fifthCircleMap[f] + 3 % 12;
             } else {
                 return fifthCircleMap[f];
             }
@@ -673,11 +674,11 @@
                     }
                 }
                 let data = Object.entries(fifthCircleNumberMap).map(([f, data]) => ({
-                    f: attr === 'minor' ? parseInt(f) - 3 : parseInt(f),
+                    f: parseInt(f),
                     value: data.value * 100,
                     attr: data.attr
                 }));
-                return data.filter(obj => obj.attr === attr);
+                return data;
             }
             nextTensions(chords_sample, attr, key) {
                 const chordObjs = this.nextChords(chords_sample);
@@ -710,7 +711,10 @@
                 this.attr = chord.attr;
                 this.notes = []
                 chords_type[this.attr].forEach((noteIndex, i) => {
-                    const note = (this.root + noteIndex)
+                    let note = (this.root + noteIndex)
+                    if (this.attr === "minor") {
+                        note += 9;
+                    }
                     this.notes.push(note)
                 });
                 if (chord.tensions) {
@@ -730,9 +734,15 @@
             renderLine() {
                 this.notes.forEach(note1 => {
                     note1 = (note1 + 12) % 12;
+                    if (this.attr === "minor") {
+                        note1 = (note1 + 3) % 12;
+                    }
                     let x1 = this.position[note1].x,
                         y1 = this.position[note1].y;
                     this.notes.forEach(note2 => {
+                        if (this.attr === "minor") {
+                            note2 = (note2 + 3) % 12;
+                        }
                         note2 = (note2 + 12) % 12;
                         if (note1 !== note2) {
                             let x2 = this.position[note2].x,
@@ -806,7 +816,11 @@
             } else if (buttonList.length < 2) {
                 curChord.root = numberToKey(index)
                 curChord.tensions = null
-                curChord.attr = mode.attr;
+                if (index >= 5 && index <= 8) {
+                    curChord.attr = "minor";
+                } else {
+                    curChord.attr = "major";
+                }
                 tensionChart = new Chart(chords.nextTensions(chord_progression, mode.attr, numberToKey(index)).map(tension => {
                     tension.f += keyToNumber(curChord.root)
                     return tension;
@@ -841,16 +855,17 @@
             chord_progression.push(stringifyChord(curChord).join(""))
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
         }
-
+        /*
         document.querySelector(".overlay").addEventListener("click", () => {
             const isMinorMode = mode.attr === "minor";
             mode.attr = isMinorMode ? "major" : "minor";
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
-        });
+        });*/
 
         const chords = new Chords(data);
         chord_progression = ["C"]
+        console.log(chords.nextKeys(chord_progression, "minor"))
         chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
         set_keys();
         circleText(chord_progression)
