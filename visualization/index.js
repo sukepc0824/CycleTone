@@ -1,5 +1,5 @@
 function set_keys() {
-    const mejour_key_array = ["C", "G", "D", "A", "E", "B", "F#", "Db", "Ab", "Eb", "Bb", "F"];
+    const mejour_key_array = ["C", "G", "D", "A", "E", "B", "F#", "Db", "G#", "Eb", "Bb", "F"];
     const mejour_key_tones = ["C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"];
     const mejour_key_midi_tones = [60, 55, 62, 57, 64, 59, 54, 61, 56, 63, 58, 65];
     const minor_key_midi_tones = [57, 64, 59, 54, 61, 56, 63, 58, 65, 60, 55, 62];

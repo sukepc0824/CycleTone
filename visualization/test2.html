@@ -311,7 +311,7 @@
         let mode = { main: "suggestion", attr: "major" }
         let chart, chord, tensionChart;
         function numberToKey(f) {
-            if (5 <= f && f <= 8) {
+            if (5 <= f && f <= 7) {
                 return fifthCircleMapReversed[(f + 9) % 12];
             } else {
                 return fifthCircleMapReversed[f];
@@ -320,7 +320,7 @@
         }
 
         function keyToNumber(f) {
-            if (2 <= fifthCircleMap[f] && fifthCircleMap[f] <= 5) {
+            if (2 <= fifthCircleMap[f] && fifthCircleMap[f] <= 4) {
                 return fifthCircleMap[f] + 3 % 12;
             } else {
                 return fifthCircleMap[f];
@@ -501,6 +501,8 @@
                 tensions: tensionStr || null
             };
         }
+
+        console.log(parseChord("C7"))
 
         const volume = new Tone.Volume(-4).toDestination(); // -10dB に設定
         const synth = new Tone.PolySynth(Tone.Synth).connect(volume);
@@ -816,7 +818,7 @@
             } else if (buttonList.length < 2) {
                 curChord.root = numberToKey(index)
                 curChord.tensions = null
-                if (index >= 5 && index <= 8) {
+                if (index >= 5 && index <= 7) {
                     curChord.attr = "minor";
                 } else {
                     curChord.attr = "major";
@@ -864,8 +866,8 @@
         });*/
 
         const chords = new Chords(data);
-        chord_progression = ["C"]
-        console.log(chords.nextKeys(chord_progression, "minor"))
+        chord_progression = []
+        console.log(chords.nextKeys([]))
         chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
         set_keys();
         circleText(chord_progression)
