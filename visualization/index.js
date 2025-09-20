@@ -28,32 +28,67 @@ async function getChords(path) {
     return chords
 }
 
-const doubleKeyThreshold = 400; // ミリ秒以内をダブル押しと判定
-let lastKeyDown = {};
+const keyPressThreshold = { double: 400, triple: 700 }; // ms
+let keyPressData = {};
 
 document.addEventListener("keydown", function (event) {
-    let key = Number(event.key);
-    console.log(event.key);
-    if (event.key === 'a') {
-        key = 10;
-    } else if (event.key === 'b') {
-        key = 11;
-    }
-    const now = Date.now();
+    if (event.repeat) return; // 押しっぱなし無視
 
+    let key = Number(event.key);
+    if (event.key === "a") key = 10;
+    else if (event.key === "b") key = 11;
     if (isNaN(key)) return;
 
-    const isDouble = lastKeyDown[key] && (now - lastKeyDown[key]) < doubleKeyThreshold;
-    lastKeyDown[key] = now;
+    const now = Date.now();
 
-    if (!event.repeat) {
-        if (isDouble) {
-            buttonInDouble(key)
-        } else {
-            buttonIn(key);
+    if (!keyPressData[key]) {
+        keyPressData[key] = { count: 0, lastTime: 0, timer: null };
+    }
+
+    const keyData = keyPressData[key];
+    const timeSinceLastPress = now - keyData.lastTime;
+
+    // 時間が空きすぎたらリセット
+    if (timeSinceLastPress > keyPressThreshold.triple) {
+        keyData.count = 0;
+        if (keyData.timer) {
+            clearTimeout(keyData.timer);
+            keyData.timer = null;
         }
     }
+
+    keyData.count++;
+    keyData.lastTime = now;
+
+    if (keyData.count === 1) {
+        // シングルは即実行
+        buttonIn(key);
+    } else if (keyData.count === 2) {
+        // ダブルはトリプル待ち
+        if (keyData.timer) clearTimeout(keyData.timer);
+        keyData.timer = setTimeout(() => {
+            buttonInDouble(key);
+            keyData.count = 0;
+            keyData.timer = null;
+        }, keyPressThreshold.triple);
+    } else if (keyData.count === 3) {
+        // トリプル確定 → ダブル予約キャンセル
+        if (keyData.timer) {
+            clearTimeout(keyData.timer);
+            keyData.timer = null;
+        }
+        buttonInTriple(key);
+        keyData.count = 0;
+    }
 });
+
+
+function buttonInTriple(key) {
+    now_key_index = key;
+    updateKeyNotification();
+    document.querySelector('main').style.transform = `translate(-50%, -50%) rotate(${now_key_index * 30}deg)`;
+    chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
+}
 
 document.addEventListener("keyup", function (event) {
     let key = Number(event.key);
@@ -120,5 +155,5 @@ document.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // デフォルトの右クリックメニューを無効化
     console.log('右クリック検知');
     mode.main = "compose";
-     circleText(chord_progression)
+    circleText(chord_progression)
 });
