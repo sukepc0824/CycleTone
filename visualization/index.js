@@ -82,14 +82,6 @@ document.addEventListener("keydown", function (event) {
     }
 });
 
-
-function buttonInTriple(key) {
-    now_key_index = key;
-    updateKeyNotification();
-    document.querySelector('main').style.transform = `translate(-50%, -50%) rotate(${now_key_index * 30}deg)`;
-    chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-}
-
 document.addEventListener("keyup", function (event) {
     let key = Number(event.key);
     if (event.key === 'a') {
@@ -124,7 +116,7 @@ window.addEventListener('pointerup', (e) => {
             console.log('上スワイプ');
             document.querySelector('.modal').classList.add('active')
             const p = document.querySelector('.modal .progression p');
-
+            updateChordList()
             p.innerHTML = "";
 
             chord_progression.forEach((chord, index) => {
@@ -157,3 +149,18 @@ document.addEventListener('contextmenu', (event) => {
     mode.main = "compose";
     circleText(chord_progression)
 });
+
+
+const listElement = document.querySelector(".list");
+for (let i = 0; i < 8; i++) {
+    const chordDiv = document.createElement("div");
+    chordDiv.className = "chord";
+    listElement.appendChild(chordDiv);
+}
+
+function updateChordList() {
+    chord_progression.forEach((chord, index) => {
+        const chordDiv = listElement.children[index];
+        chordDiv.textContent = chord;
+    });
+}
