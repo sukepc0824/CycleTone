@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Play</title>
     <link rel="stylesheet" href="/reset.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
     <link href="https://fonts.cdnfonts.com/css/helvlight" rel="stylesheet">
@@ -778,7 +778,6 @@
                 this.data = data;
                 this.isLabel = isLabel;
                 this.animProgress = 0; // 0 → 1 に進む
-                console.log(this.data);
             }
 
             update() {
@@ -1014,11 +1013,6 @@
                         total += chord.value;
                     }
                 }
-                console.log(Object.entries(tensionMap).map(([tension, value]) => (
-                    {
-                        f: fifthCircleNumberTensionMap[tension],
-                        value: (value / total) * 100
-                    })))
                 return Object.entries(tensionMap).map(([tension, value]) => (
                     {
                         f: fifthCircleNumberTensionMap[tension],
@@ -1095,6 +1089,13 @@
                 this.data = data;
                 this.root = keyToNumber(curChord.root);
                 this.attr = curChord.attr;
+                this.data = Array(12).fill(0);
+                data.forEach(d => {
+                    if (d && d.f !== undefined) {
+                        this.data[d.f] = d.value;
+                    }
+                });
+                console.log(this.data);
             }
             render() {
                 let angleStep = 360 / 12;
@@ -1102,31 +1103,21 @@
                 translate(240, 240);
                 textAlign(CENTER, CENTER);
                 for (let i = 0; i < 12; i++) {
-                    let d = this.data[i];
-                    let value;
-                    let f;
-                    if (!d) {
-                        value = 0
-                        f = 0
-                    } else {
-                        f = d.f;
-                        value = d.value;
-                    }
-
+                    let value = this.data[i];
                     let angle = i * angleStep + angleStep / 2;
                     if (this.attr === "minor") {
                         angle += 90
                     }
                     angle += this.root * 30
-                    let labelRadius = 214;
+                    let labelRadius = 210;
                     let x = cos(angle - 105) * labelRadius;
                     let y = sin(angle - 105) * labelRadius;
 
                     push();
                     translate(x, y);
                     textSize(32);
-                    fill(value * 10 + 120);
                     noStroke()
+                    fill(value * 102 + 100);
                     text(fifthCircleNumberTensionMapReversed[i], 0, 0);
                     pop();
                 }
@@ -1189,7 +1180,11 @@
             strokeWeight(1);
             noFill();
             textFont('HelvLight');
-
+            if (chord_progression.length === 0) {
+                document.querySelector(".sub .div").style.opacity = 0
+            } else {
+                document.querySelector(".sub .div").style.opacity = 1
+            }
             if (mode.main === "suggestion") {
                 document.querySelector(".chord-name").innerHTML = '<span class="root"></span><span class="tention"></span>'
                 document.querySelector(".mode").style.display = "flex"
@@ -1213,15 +1208,24 @@
         }
 
         let buttonList = [];
+        // curChordとcurChordHistoryを初期化
         let curChord = {
             root: null,
             attr: null,
             tensions: null
+        };
+        let curChordHistory = []; // curChordの履歴を保存する配列
+
+        // curChordを更新する関数
+        function updateCurChord(newChord) {
+            curChord = { ...newChord }; // curChordを更新
+            curChordHistory.push({ ...curChord }); // 履歴に追加
         }
 
         function buttonIn(index) {
             buttonList.push(index);
             let tensions;
+
             if (buttonList.length == 2) {
                 if (curChord.attr === "minor") {
                     tensions = (index - 3 - keyToNumber(curChord.root) + 12) % 12;
@@ -1230,21 +1234,27 @@
                 }
                 curChord.tensions = fifthCircleNumberTensionMapReversed[tensions];
             } else if (buttonList.length < 2) {
-                curChord.root = numberToKey(index)
-                curChord.tensions = null
+                curChord.root = numberToKey(index);
+                curChord.tensions = null;
                 if (index >= (5 + now_key_index) % 12 && index <= (7 + now_key_index) % 12) {
                     curChord.attr = "minor";
                 } else {
                     curChord.attr = "major";
                 }
-                tensionChart = new TensionChart(chords.nextTensions(chord_progression, mode.attr, numberToKey(index)).map(function (data) {
-                    if (data.f === undefined) return null;
-                    return {
-                        f: (data.f + keyToNumber(curChord.root)) % 12,
-                        value: data.value
-                    }
-                }), curChord);
+                tensionChart = new TensionChart(
+                    chords.nextTensions(chord_progression, mode.attr, numberToKey(index)).map(function (data) {
+                        if (data.f === undefined) return null;
+                        return {
+                            f: data.f,
+                            value: data.value
+                        };
+                    }),
+                    curChord
+                );
             }
+
+            updateCurChord(curChord);
+
             chord = new Notes(curChord);
 
             if (buttonList.length == 0) {
@@ -1256,7 +1266,6 @@
                 } else {
                     triggerChord(chord.notes, chord.root);
                 }
-
             }
         }
 
@@ -1267,10 +1276,18 @@
             }
             if (buttonList.length == 0) {
                 mode.main = "suggestion";
-                releaseChord()
+                releaseChord();
             } else {
                 mode.main = "chord";
             }
+        }
+
+        // 履歴の取得例
+        function getLastChord() {
+            if (curChordHistory.length > 0) {
+                return curChordHistory[curChordHistory.length - 1]; // 履歴の最後の要素を取得
+            }
+            return null;
         }
 
         function buttonInDouble() {
@@ -1278,15 +1295,19 @@
             if (curChord.attr === "minor") {
                 index = (index + 3) % 12
             }
-            document.querySelector(".edge").style.transform = `rotate(${(index - now_key_index) * 30}deg)`
-            chord_progression.push(stringifyChord(curChord).join(""))
+            let currentRotation = parseFloat(document.querySelector(".edge").style.transform.replace(/[^-?\d.]/g, '')) || 0;
+            let targetRotation = (index - now_key_index) * 30;
+            let deltaRotation = ((targetRotation - currentRotation + 540) % 360) - 180; // Shortest path calculation
+            document.querySelector(".edge").style.transform = `rotate(${currentRotation + deltaRotation}deg)`;
+            console.log(curChordHistory)
+            chord_progression.push(stringifyChord(curChordHistory[curChordHistory.length - 2]).join(""))
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-            console.log(chords.next(chord_progression, mode.attr))
             lines = new Line(chord_progression.map(chord => {
                 const chordObj = parseChord(chord);
                 return chordObj ? chordObj.fifthCircleNumber : null;
             }).filter(f => f !== null));
         }
+
 
         function updateKeyNotification() {
             const majorName = numberToKey(now_key_index);
@@ -1303,21 +1324,30 @@
         }
 
         function buttonInTriple(key) {
+            let prev = sharps.indexOf(fifthCircleMapReversed[now_key_index])
             now_key_index = key;
+            console.log(sharps[now_key_index])
             updateKeyNotification();
             document.querySelector('main').style.transform = `translate(-50%, -50%) rotate(${now_key_index * 30}deg)`;
+
+            chord_progression = chord_progression.map(chord => transposeChord(chord, sharps.indexOf(fifthCircleMapReversed[now_key_index]) - prev))
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-            chord_progression = chord_progression.map(chord => transposeChord(chord, now_key_index))
+            updateChordList(chord_progression)
         }
 
         function chord_delete() {
-            chord_progression = []
-            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-            updateChordList(chord_progression)
+            chord_progression_temp = []
+            chart = new Chart(chords.nextKeys(chord_progression_temp, mode.attr))
+            updateChordList(chord_progression_temp)
         }
         let chord_progression_temp = []
         function undo() {
             chord_progression_temp = chord_progression_temp.slice(0, -1)
+            updateChordList(chord_progression_temp)
+        }
+
+        function redo() {
+            chord_progression_temp = chord_progression.slice(0, chord_progression_temp.length + 1)
             updateChordList(chord_progression_temp)
         }
 
@@ -1326,7 +1356,7 @@
             chord_progression = chord_progression_temp
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             updateChordList(chord_progression)
-                        mode.main = 'suggestion'
+            mode.main = 'suggestion'
         }
 
 
@@ -1340,9 +1370,10 @@
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
         });*/
-
-
-
+        
+        setInterval(() => {
+            localStorage.setItem('chord_progression', JSON.stringify(chord_progression));
+        }, 30000);
         const chords = new Chords(data);
         chord_progression = []
         chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
