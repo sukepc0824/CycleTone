@@ -43,7 +43,7 @@
             top: 0;
             left: 0;
             background-color: rgba(0, 0, 0, 0);
-            z-index: 1000050;
+            z-index: 1000;
             width: 480px;
             height: 480px;
             top: 50%;
@@ -143,15 +143,17 @@
             background-color: #000000;
             width: 480px;
             height: 480px;
-            z-index: 100000;
+            z-index: 1000;
+            /* Adjusted z-index */
             position: absolute;
             border-radius: 50%;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, 50%);
             color: #fff;
             font-size: 60px;
-            display: none;
+            transition: transform 0.2s ease;
+            overflow: hidden;
         }
 
         .progression {
@@ -176,6 +178,7 @@
 
         .modal.active {
             display: flex;
+            transform: translate(-50%, -50%);
         }
 
         .progression span:last-child {
@@ -278,6 +281,7 @@
             font-size: 28px;
             flex-wrap: wrap;
             width: 400px;
+            margin-top: 29px;
         }
 
         .list .chord {
@@ -289,8 +293,87 @@
             justify-content: center;
         }
 
-        main:hover {
+        main {
             cursor: none;
+        }
+
+        .progression {
+            position: absolute;
+        }
+
+        button.close {
+            position: absolute;
+            top: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 20px 20px;
+            width: 100%;
+            margin-top: 0px;
+            background: none !important;
+        }
+
+        button.close img {
+            width: 50px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+        }
+
+        .edit {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #202020;
+            border-radius: 50px;
+        }
+
+        img {
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+
+        .modal button img {
+            height: 26px;
+            opacity: 0.8;
+        }
+
+        .modal button.play {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 60px;
+            font-size: 28px;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -303,6 +386,7 @@
                 <button class="play" onclick="chordProgressionPlay()">▶︎ Play</button>
             </div>
             <div class="element">
+                <div class="overlay"></div>
                 <div class="chord-name"><span class="root"></span><span class="tention"></span></div>
                 <div class="edge">
                     <div class="sub">
@@ -311,19 +395,34 @@
                         </div>
                     </div>
                 </div>
-                <div class="overlay" ondblclick="buttonInDouble()"></div>
                 <div class="modal">
                     <div class="progression">
                         <p style="display: none;"></p>
                         <div class="list"></div>
                     </div>
+                    <button onclick="modalClose()" class="close">
+                        <img src="./assets/close.svg">
+                    </button>
+                    <div class="edit">
+                        <button onclick="undo()">
+                            <img src="./assets/undo.svg">
+                        </button>
+                        <button onclick="redo()">
+                            <img src="./assets/redo.svg">
+                        </button>
+                        <button onclick="chord_delete()">
+                            <img src="./assets/delete.svg">
+                        </button>
+                    </div>
+                    <button class="play" onclick="chordProgressionPlay()">
+                        <img src="./assets/chordplay.svg" alt="">
+                    </button>
                 </div>
                 <div class="mode">
                     <!--<div class="attr"><img src="./assets/major.svg">major</div>-->
                     <div class="key" style="display: none;"><img src="./assets/key.svg">C/Am</div>
                 </div>
                 <div class="notificaiton">
-
                 </div>
             </div>
         </div>
@@ -383,20 +482,28 @@
             11: 'F',
         };
         const fifthCircleNumberTensionMap = {
-            '11': 2,
+            '9': 2,
             '6': 3,
             'M7': 5,
             'aug': 8,
             '7': 10,
-            '4': 11,
+            'sus4': 11,
         }
         const fifthCircleNumberTensionMapReversed = {
-            2: '11',
+            2: '9',
             3: '6',
             5: 'M7',
             8: 'aug',
             10: '7',
-            11: '4',
+            11: 'sus4',
+        }
+        const fifthCircleNumberTensionMapReversedMinor = {
+            2: '9',
+            3: '6',
+            5: 'M7',
+            8: 'aug',
+            10: '7',
+            11: 'sus4',
         }
         const chords_type = {
             'major': [0, 1, 4],
@@ -464,30 +571,48 @@
                 arrow.style.top = `${y}px`;
                 arrow.style.transform = `rotate(${angle + Math.PI / 2}rad)`;
                 composeDiv.appendChild(arrow);
-            } 1
+            }
         }
 
         function chordProgressionPlay(progression = chord_progression) {
-            if (!progression || progression.length === 0) return;
-            let index = 0;
-            function playNextChord() {
-                const chordStr = progression[index];
-                const chordObj = parseChord(chordStr);
+            if (progression.length === 0) return;
 
+            let index = 0;
+
+            function playNextChord() {
+                const chordObj = parseChord(progression[index]);
                 if (chordObj) {
-                    chord = new Notes(chordObj);
-                    triggerChord(chord.notes);
-                    index = (index + 1) % progression.length;
+                    const notes = new Notes(chordObj);
+                    if (chordObj.attr === "minor") {
+                        triggerChord(notes.notes.map(n => n + 9), notes.root);
+                    } else {
+                        triggerChord(notes.notes, notes.root);
+                    }
                 }
+                index++;
+                if (index < progression.length) {
+                    setTimeout(playNextChord, 740);
+                } else {
+                    setTimeout(() => {
+                        releaseChord();
+                        document.querySelectorAll('.list .chord').forEach((chordElement, idx) => {
+                            if (idx === index - 1) {
+                                chordElement.style.backgroundColor = ''; // Reset the previous chord's highlight
+                            }
+                        });
+                    }, 740);
+                }
+                document.querySelectorAll('.list .chord').forEach((chordElement, idx) => {
+                    if (idx === index - 1) {
+                        chordElement.style.backgroundColor = '#ff4800'; // Highlight color
+                    } else {
+                        chordElement.style.backgroundColor = ''; // Reset others
+                    }
+                });
             }
-            let interval = setInterval(() => {
-                playNextChord();
-                if (index === 0) {
-                    releaseChord();
-                    clearInterval(interval);
-                }
-            }, 1000);
+            playNextChord();
         }
+
 
         function parseChord(chordStr) {
             const rootMatch = chordStr.match(/^([A-G][b#]?)/);
@@ -813,6 +938,15 @@
                 const updatedSample = this.chordsPredictDataFormat(chords_sample)
                 let chords_temp = this.chords;
                 for (let i = 0; i < updatedSample.length; i++) {
+                    try {
+                        if (!chords_temp[updatedSample[i]]) {
+                            chords_temp = {};
+                            break;
+                        }
+                    } catch (e) {
+                        chords_temp = {};
+                        break;
+                    }
                     chords_temp = chords_temp[updatedSample[i]]
                 }
                 let returnData = []
@@ -901,13 +1035,13 @@
                 this.notes = []
                 chords_type[this.attr].forEach((noteIndex, i) => {
                     let note = (this.root + noteIndex)
-                    if (this.attr === "minor") {
-                        note += 3;
-                    }
                     this.notes.push(note)
                 });
                 if (chord.tensions) {
                     this.notes.push(fifthCircleNumberTensionMap[chord.tensions] + this.root)
+                }
+                if (this.attr === "minor") {
+                    this.notes = this.notes.map(n => (n + 3) % 12)
                 }
             }
             get position() {
@@ -932,34 +1066,12 @@
                             let x2 = this.position[note2].x,
                                 y2 = this.position[note2].y;
                             stroke(240 * random(0.94, 1));
-                            strokeWeight(4);
+                            strokeWeight(3);
                             line(x1, y1, x2, y2);
                         }
                     })
                 })
 
-                let angleStep = 360 / 12;
-                let labelRadius = 214;
-                push();
-                noStroke()
-                translate(240, 240);
-                textAlign(CENTER, CENTER);
-                textSize(28);
-                fill(105);
-                for (let i = 0; i < 12; i++) {
-                    let angle = i * angleStep + angleStep / 2;
-                    angle += this.root * 30
-                    let labelRadius = 214;
-                    let x = cos(angle - 105) * labelRadius;
-                    let y = sin(angle - 105) * labelRadius;
-
-                    push();
-                    translate(x, y);
-                    text(fifthCircleNumberTensionMapReversed[i], 0, 0);
-                    pop();
-                }
-
-                pop();
                 /*
                 let x_p = this.position[this.notes[0]].x,
                     y_p = this.position[this.notes[0]].y;
@@ -975,6 +1087,51 @@
             render() {
                 this.renderLine()
                 this.renderChordName();
+            }
+        }
+
+        class TensionChart {
+            constructor(data, curChord) {
+                this.data = data;
+                this.root = keyToNumber(curChord.root);
+                this.attr = curChord.attr;
+            }
+            render() {
+                let angleStep = 360 / 12;
+                push();
+                translate(240, 240);
+                textAlign(CENTER, CENTER);
+                for (let i = 0; i < 12; i++) {
+                    let d = this.data[i];
+                    let value;
+                    let f;
+                    if (!d) {
+                        value = 0
+                        f = 0
+                    } else {
+                        f = d.f;
+                        value = d.value;
+                    }
+
+                    let angle = i * angleStep + angleStep / 2;
+                    if (this.attr === "minor") {
+                        angle += 90
+                    }
+                    angle += this.root * 30
+                    let labelRadius = 214;
+                    let x = cos(angle - 105) * labelRadius;
+                    let y = sin(angle - 105) * labelRadius;
+
+                    push();
+                    translate(x, y);
+                    textSize(32);
+                    fill(value * 10 + 120);
+                    noStroke()
+                    text(fifthCircleNumberTensionMapReversed[i], 0, 0);
+                    pop();
+                }
+
+                pop();
             }
         }
 
@@ -1037,6 +1194,7 @@
                 document.querySelector(".chord-name").innerHTML = '<span class="root"></span><span class="tention"></span>'
                 document.querySelector(".mode").style.display = "flex"
                 document.querySelector(".element").style.transform = "translate(-50%, -50%)"
+                document.querySelector(".sub .div").style.display = "block"
                 chart.render();
                 lines.render();
             }
@@ -1044,12 +1202,11 @@
                 tensionChart.render();
                 chord.render();
                 document.querySelector(".mode").style.display = "none"
+                document.querySelector(".sub .div").style.display = "none"
             }
             if (mode.main === 'compose') {
-                document.querySelector(".element").style.transform = "translate(-50%, -50%) scale(0.8)";
-                if (chord != null) {
-                    chord.render();
-                }
+                //document.querySelector(".element").style.transform = "translate(-50%, -50%) scale(0.8)";
+                document.querySelector(".sub .div").style.display = "none"
                 document.querySelector(".mode").style.display = "none"
             }
 
@@ -1066,7 +1223,12 @@
             buttonList.push(index);
             let tensions;
             if (buttonList.length == 2) {
-                curChord.tensions = fifthCircleNumberTensionMapReversed[(index - keyToNumber(curChord.root) + 12) % 12];
+                if (curChord.attr === "minor") {
+                    tensions = (index - 3 - keyToNumber(curChord.root) + 12) % 12;
+                } else {
+                    tensions = (index - keyToNumber(curChord.root) + 12) % 12;
+                }
+                curChord.tensions = fifthCircleNumberTensionMapReversed[tensions];
             } else if (buttonList.length < 2) {
                 curChord.root = numberToKey(index)
                 curChord.tensions = null
@@ -1075,8 +1237,13 @@
                 } else {
                     curChord.attr = "major";
                 }
-                tensionChart = new Chart(chords.nextTensions(chord_progression, mode.attr, numberToKey(index)), true);
-                console.log(tensionChart)
+                tensionChart = new TensionChart(chords.nextTensions(chord_progression, mode.attr, numberToKey(index)).map(function (data) {
+                    if (data.f === undefined) return null;
+                    return {
+                        f: (data.f + keyToNumber(curChord.root)) % 12,
+                        value: data.value
+                    }
+                }), curChord);
             }
             chord = new Notes(curChord);
 
@@ -1143,6 +1310,25 @@
             chord_progression = chord_progression.map(chord => transposeChord(chord, now_key_index))
         }
 
+        function chord_delete() {
+            chord_progression = []
+            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
+            updateChordList(chord_progression)
+        }
+        let chord_progression_temp = []
+        function undo() {
+            chord_progression_temp = chord_progression_temp.slice(0, -1)
+            updateChordList(chord_progression_temp)
+        }
+
+        function modalClose() {
+            document.querySelector('.modal').classList.remove('active')
+            chord_progression = chord_progression_temp
+            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
+            updateChordList(chord_progression)
+                        mode.main = 'suggestion'
+        }
+
 
         // 初期表示
         updateKeyNotification();
@@ -1154,6 +1340,8 @@
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
         });*/
+
+
 
         const chords = new Chords(data);
         chord_progression = []

@@ -28,7 +28,7 @@ async function getChords(path) {
     return chords
 }
 
-const keyPressThreshold = { double: 400, triple: 700 }; // ms
+const keyPressThreshold = { double: 200, triple: 400 }; // ms
 let keyPressData = {};
 
 document.addEventListener("keydown", function (event) {
@@ -114,23 +114,6 @@ window.addEventListener('pointerup', (e) => {
     if (Math.abs(deltaY) > minimumDistance) {
         if (deltaY < 0) {
             console.log('上スワイプ');
-            document.querySelector('.modal').classList.add('active')
-            const p = document.querySelector('.modal .progression p');
-            updateChordList()
-            p.innerHTML = "";
-
-            chord_progression.forEach((chord, index) => {
-                const span = document.createElement('span');
-                span.textContent = chord;
-                p.appendChild(span);
-
-                if (index < chord_progression.length - 1) {
-                    const arrow = document.createElement('span');
-                    arrow.textContent = " → ";
-                    arrow.classList.add("arrow")
-                    p.appendChild(arrow);
-                }
-            });
 
         } else {
             console.log('下スワイプ');
@@ -138,6 +121,26 @@ window.addEventListener('pointerup', (e) => {
         }
     }
 });
+
+document.querySelector('.overlay').addEventListener('click', () => {
+    document.querySelector('.modal').classList.add('active')
+    const p = document.querySelector('.modal .progression p');
+    updateChordList(chord_progression)
+    p.innerHTML = "";
+    chord_progression_temp = chord_progression
+    chord_progression.forEach((chord, index) => {
+        const span = document.createElement('span');
+        span.textContent = chord;
+        p.appendChild(span);
+
+        if (index < chord_progression.length - 1) {
+            const arrow = document.createElement('span');
+            arrow.textContent = " → ";
+            arrow.classList.add("arrow")
+            p.appendChild(arrow);
+        }
+    });
+})
 
 const longPressThreshold = 500; // ミリ秒以上を長押しと判定
 let pressTimer = null;
@@ -147,7 +150,7 @@ document.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // デフォルトの右クリックメニューを無効化
     console.log('右クリック検知');
     mode.main = "compose";
-    circleText(chord_progression)
+    //circleText(chord_progression)
 });
 
 
@@ -158,9 +161,15 @@ for (let i = 0; i < 8; i++) {
     listElement.appendChild(chordDiv);
 }
 
-function updateChordList() {
+function updateChordList(chord_progression) {
+    const listElement = document.querySelector(".list");
+    listElement.querySelectorAll(".chord").forEach(chord => {
+        chord.textContent = "";
+    });
+
     chord_progression.forEach((chord, index) => {
         const chordDiv = listElement.children[index];
         chordDiv.textContent = chord;
     });
+    mode.main = 'compose';
 }
