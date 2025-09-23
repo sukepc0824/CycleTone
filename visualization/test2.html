@@ -971,6 +971,7 @@
 
             nextKeys(chords_sample, attr) {
                 const chordObjs = this.nextChords(chords_sample);
+                console.log(chordObjs)
                 const fifthCircleNumberMap = {};
                 for (const chord of chordObjs) {
                     if (fifthCircleNumberMap[chord.fifthCircleNumber]) {
@@ -983,17 +984,18 @@
                     }
                 }
                 let data = Object.entries(fifthCircleNumberMap).map(function ([f, data]) {
-                    if (data.attr === "minor" && !(5 <= parseInt(f) + 3 && parseInt(f) + 3 <= 7)) {
+                    if (data.attr === "minor" && !(5+now_key_index <= parseInt(f) + 3 && parseInt(f) + 3 <= 7+now_key_index)) {
 
                     } else {
                         return (
                             {
-                                f: data.attr === "minor" ? parseInt(f) + 3 : parseInt(f),
+                                f: data.attr === "minor" ? (parseInt(f) + 3)%12 : parseInt(f)%12,
                                 value: data.value * 100,
                                 attr: data.attr
                             })
                     }
                 });
+                console.log(data)
                 return data;
             }
 
@@ -1095,7 +1097,6 @@
                         this.data[d.f] = d.value;
                     }
                 });
-                console.log(this.data);
             }
             render() {
                 let angleStep = 360 / 12;
@@ -1299,7 +1300,6 @@
             let targetRotation = (index - now_key_index) * 30;
             let deltaRotation = ((targetRotation - currentRotation + 540) % 360) - 180; // Shortest path calculation
             document.querySelector(".edge").style.transform = `rotate(${currentRotation + deltaRotation}deg)`;
-            console.log(curChordHistory)
             chord_progression.push(stringifyChord(curChordHistory[curChordHistory.length - 2]).join(""))
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             lines = new Line(chord_progression.map(chord => {
@@ -1326,7 +1326,6 @@
         function buttonInTriple(key) {
             let prev = sharps.indexOf(fifthCircleMapReversed[now_key_index])
             now_key_index = key;
-            console.log(sharps[now_key_index])
             updateKeyNotification();
             document.querySelector('main').style.transform = `translate(-50%, -50%) rotate(${now_key_index * 30}deg)`;
 

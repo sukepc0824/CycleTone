@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MIDI Note Viewer — 同時押し対応</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;display:flex;align-items:flex-start;gap:24px;padding:28px;background:#f7f7fb;color:#111}
+    .card{background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(15,20,40,0.06);padding:18px;min-width:320px}
+    h1{margin:0 0 10px;font-size:18px}
+    .status{font-size:13px;color:#555;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    pre{background:#f1f5ff;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-word}
+    button{padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    button.primary{background:#2563eb;color:#fff;border:none}
+    .note-pill{display:inline-block;padding:6px 8px;border-radius:999px;border:1px solid #e6e9f2;margin:4px;font-size:13px}
+    .big{font-size:20px;font-weight:600}
+    footer{font-size:12px;color:#666;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="card" id="main">
+    <h1>MIDI Note Viewer (同時押し対応)</h1>
+    <div class="status" id="status">MIDIアクセス待ち — 「MIDIアクセスを有効にする」をクリックしてください</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="btnEnable">MIDIアクセスを有効にする</button>
+      <button id="btnClear">クリア</button>
+      <button id="btnCopy" class="primary">配列をコピー</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="big">現在押されているノート (MIDI番号)</div>
+        <pre id="midiNumbers">[]</pre>
+      </div>
+      <div>
+        <div class="big">現在押されているノート名</div>
+        <pre id="noteNames">[]</pre>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="big">ビジュアル表示</div>
+      <div id="pills" style="margin-top:8px"></div>
+    </div>
+
+    <footer>
+      対応ブラウザ: Chrome / Edge 等で Web MIDI API をサポートしているもの。<br>
+      ノートは同時押しに対応しています。ノートを複数押すと配列として出力されます。
+    </footer>
+  </div>
+
+  <script>
+    let midiAccess = null;
+    const activeNotes = new Set();
+
+    const statusEl = document.getElementById('status');
+    const btnEnable = document.getElementById('btnEnable');
+    const btnClear = document.getElementById('btnClear');
+    const btnCopy = document.getElementById('btnCopy');
+    const midiNumbersEl = document.getElementById('midiNumbers');
+    const noteNamesEl = document.getElementById('noteNames');
+    const pillsEl = document.getElementById('pills');
+
+    function midiToName(n){
+      const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+      const name = names[n % 12];
+      const octave = Math.floor(n / 12) - 1; // MIDI octave convention
+      return name + octave;
+    }
+
+    function updateUI(){
+      const arr = Array.from(activeNotes).sort((a,b)=>a-b);
+      midiNumbersEl.textContent = JSON.stringify(arr);
+      noteNamesEl.textContent = JSON.stringify(arr.map(midiToName));
+      // pills
+      pillsEl.innerHTML = '';
+      arr.forEach(n=>{
+        const d = document.createElement('span');
+        d.className = 'note-pill';
+        d.textContent = midiToName(n) + ' ('+n+')';
+        pillsEl.appendChild(d);
+      });
+      statusEl.textContent = `接続中デバイス: ${Array.from((midiAccess && midiAccess.inputs) ? midiAccess.inputs.values() : []).length}、押下中 ${arr.length} 音`;
+    }
+
+    function onMIDIMessage(e){
+      // e.data: [status, note, velocity]
+      const [status, note, velocity] = e.data;
+      const cmd = status & 0xf0;
+      if(cmd === 0x90 && velocity > 0){ // note on
+        activeNotes.add(note);
+      } else if(cmd === 0x80 || (cmd === 0x90 && velocity === 0)){ // note off
+        activeNotes.delete(note);
+      }
+      updateUI();
+    }
+
+    function onStateChange(e){
+      // device connected / disconnected
+      updateUI();
+    }
+
+    async function enableMIDI(){
+      if(navigator.requestMIDIAccess === undefined){
+        statusEl.textContent = 'このブラウザは Web MIDI API をサポートしていません。Chrome/Edge を推奨します。';
+        return;
+      }
+      try{
+        midiAccess = await navigator.requestMIDIAccess();
+        statusEl.textContent = 'MIDIアクセス取得成功。キーボードを弾いてください。';
+        for(const input of midiAccess.inputs.values()){
+          input.onmidimessage = onMIDIMessage;
+        }
+        midiAccess.onstatechange = onStateChange;
+
+        // watch for new inputs
+        midiAccess.inputs.on = midiAccess.inputs.on || (()=>{});
+        updateUI();
+      } catch(err){
+        statusEl.textContent = 'MIDIアクセス失敗: ' + err;
+      }
+    }
+
+    btnEnable.addEventListener('click', enableMIDI);
+    btnClear.addEventListener('click', ()=>{ activeNotes.clear(); updateUI(); });
+    btnCopy.addEventListener('click', async ()=>{
+      const arr = Array.from(activeNotes).sort((a,b)=>a-b);
+      const text = JSON.stringify({midi: arr, names: arr.map(midiToName)});
+      try{
+        await navigator.clipboard.writeText(text);
+        btnCopy.textContent = 'コピーしました';
+        setTimeout(()=>btnCopy.textContent = '配列をコピー', 1200);
+      }catch(e){
+        alert('クリップボードへコピーできませんでした: '+e);
+      }
+    });
+
+    // try auto-enable if permission was previously granted (some browsers remember)
+    if(navigator.requestMIDIAccess){
+      navigator.permissions && navigator.permissions.query && navigator.permissions.query({name:'midi', sysex:false}).then((p)=>{
+        if(p.state === 'granted') enableMIDI();
+      }).catch(()=>{});
+    }
+
+    // helpful: click anywhere to focus for some MIDI devices that require user gesture
+    document.body.addEventListener('touchstart',()=>{}, {passive:true});
+  </script>
+</body>
+</html>
