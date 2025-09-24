@@ -133,7 +133,6 @@
             // 入力された番号がdata内に存在するか確認
             const indexToSkip = trials.findIndex(trial => trial.number === inputNumber);
             if (indexToSkip !== -1) {
-                alert(`番号 ${inputNumber} のトライアルをスキップします`);
                 trials.splice(indexToSkip, 1); // 該当のトライアルを削除
                 if (currentIndex >= trials.length) {
                     // 全てのトライアルが終了した場合
@@ -143,8 +142,6 @@
                 } else {
                     showTrial(); // 次のトライアルを表示
                 }
-            } else {
-                alert(`番号 ${inputNumber} は存在しません`);
             }
         });
         // 次のトライアルを表示
