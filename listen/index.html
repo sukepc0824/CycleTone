@@ -345,7 +345,7 @@
             }
 
             trials = await getBalancedTrials(inputNumber);
-
+            trials = trials.filter(trial => trial.number !== inputNumber);
             if (trials.length === 0) {
                 alert("このユーザーはすでに全て評価済みです");
                 return;
