@@ -176,11 +176,6 @@
         alert("有効な番号を入力してください");
         return;
       }
-      const trialExists = data.some(trial => trial.number === inputNumber);
-      if (!trialExists) {
-        alert("この番号は存在しません");
-        return;
-      }
       document.getElementById("experiment").classList.remove("hidden");
       showTrial();
     });
@@ -201,25 +196,32 @@
       let trial = trials[currentIndex];
       playChordProgression(trial.midi);
     });
+    
+document.getElementById("nextBtn").addEventListener("click", () => {
+  let nat = document.querySelector("input[name=naturalness]:checked");
+  let theme = document.querySelector("input[name=themeMatch]:checked");
+  if (!nat || !theme) {
+    alert("両方の評価を入力してください");
+    return;
+  }
 
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      let nat = document.querySelector("input[name=naturalness]:checked");
-      let theme = document.querySelector("input[name=themeMatch]:checked");
-      if (!nat || !theme) {
-        alert("両方の評価を入力してください");
-        return;
-      }
-      results.push({
-        number: trials[currentIndex].number,
-        theme: trials[currentIndex].theme,
-        instrument: trials[currentIndex].instrument,
-        naturalness: parseInt(nat.value),
-        themeMatch: parseInt(theme.value)
-      });
-    sendResultToBaserow(result);
-      currentIndex++;
-      showTrial();
-    });
+  let result = {
+    number: trials[currentIndex].number,
+    theme: trials[currentIndex].theme,
+    instrument: trials[currentIndex].instrument,
+    naturalness: parseInt(nat.value),
+    themeMatch: parseInt(theme.value)
+  };
+
+  results.push(result);
+
+  // 🔽 Baserowに送信
+  sendResultToBaserow(result);
+
+  currentIndex++;
+  showTrial();
+});
+
     async function sendResultToBaserow(result) {
   const response = await fetch("https://api.baserow.io/api/database/rows/table/683950/?user_field_names=true", {
     method: "POST",
