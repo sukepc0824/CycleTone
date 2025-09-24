@@ -591,7 +591,7 @@
                 }
                 index++;
                 if (index < progression.length) {
-                    setTimeout(playNextChord, 740);
+                    setTimeout(playNextChord, 840);
                 } else {
                     setTimeout(() => {
                         releaseChord();
@@ -600,7 +600,7 @@
                                 chordElement.style.backgroundColor = ''; // Reset the previous chord's highlight
                             }
                         });
-                    }, 740);
+                    }, 840);
                 }
                 document.querySelectorAll('.list .chord').forEach((chordElement, idx) => {
                     if (idx === index - 1) {
