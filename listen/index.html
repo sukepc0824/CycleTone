@@ -1,68 +1,154 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-  <meta charset="UTF-8">
-  <title>リスナー評価実験</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"></script>
-  <style>
-    body { font-family: "Segoe UI", sans-serif; background: #f7f9fc; padding: 40px;
-           display: flex; flex-direction: column; align-items: center; }
-    h1 { margin-bottom: 20px; color: #333; }
-    #login { display: flex; gap: 10px; margin-bottom: 20px; }
-    #number { padding: 10px; font-size: 16px; border: 2px solid #ccc; border-radius: 8px;
-              width: 200px; text-align: center; }
-    #confirmBtn { padding: 10px 20px; border: none; border-radius: 8px; background: #0078d4;
-                  color: white; font-size: 16px; cursor: pointer; transition: 0.2s; }
-    #confirmBtn:hover { background: #005fa3; }
-    .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            padding: 20px 30px; max-width: 500px; width: 100%; }
-    .hidden { display: none; }
-    .rating { margin: 20px 0; }
-    .rating p { margin-bottom: 10px; font-weight: bold; }
-    .rating label { display: inline-block; margin: 4px; cursor: pointer; transition: 0.2s; }
-    .rating span { padding: 5px 20px; line-height: 1; }
-    .rating input[type=radio] { display: none; }
-    .rating input[type=radio]:checked+span { background: #d8d8d8; }
-    button.action { padding: 10px 20px; border: none; border-radius: 8px; background: #0078d4;
-                    color: white; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-    button.action:hover { background: #005fa3; }
-    #results pre { background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <title>リスナー評価実験</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #fff;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #login {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #number {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+        }
+
+        #confirmBtn {
+            border: none;
+            border-radius: 8px;
+            background: #0078d4;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #confirmBtn:hover {
+            background: #005fa3;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .rating {
+            margin: 20px 0;
+        }
+
+        .rating p {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .rating label {
+            display: inline-block;
+            margin: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .rating span {
+            padding: 5px 20px;
+            line-height: 1;
+        }
+
+        .rating input[type=radio] {
+            display: none;
+        }
+
+        .rating input[type=radio]:checked+span {
+            background: #d8d8d8;
+        }
+
+        button.action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #0078d4;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        button.action:hover {
+            background: #005fa3;
+        }
+
+        #results pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>リスナー評価実験</h1>
+    <h1>リスナー評価実験</h1>
 
-  <!-- 出席番号入力 -->
-  <div id="login">
-    <input type="number" id="number" placeholder="学年,組,番号 (例:2805)" />
-    <button id="confirmBtn">確定</button>
-  </div>
-
-  <!-- 実験画面 -->
-  <div id="experiment" class="card hidden">
-    <p id="theme"></p>
-    <button id="playBtn" class="action">コード進行を再生</button>
-    <div class="rating">
-      <p>自然さ（1=不自然, 7=とても自然）</p>
-      <div id="naturalness"></div>
+    <!-- 出席番号入力 -->
+    <div id="login">
+        <input type="number" id="number" placeholder="学年,組,番号 (例:2805)" />
+        <button id="confirmBtn">確定</button>
     </div>
-    <div class="rating">
-      <p>テーマとの合致（1=全く合わない, 7=とても合う）</p>
-      <div id="themeMatch"></div>
+
+    <!-- 実験画面 -->
+    <div id="experiment" class="card hidden">
+        <p id="theme"></p>
+        <button id="playBtn" class="action">コード進行を再生</button>
+        <div class="rating">
+            <p>自然さ（1=不自然, 7=とても自然）</p>
+            <div id="naturalness"></div>
+        </div>
+        <div class="rating">
+            <p>テーマとの合致（1=全く合わない, 7=とても合う）</p>
+            <div id="themeMatch"></div>
+        </div>
+        <button id="nextBtn" class="action">次へ</button>
     </div>
-    <button id="nextBtn" class="action">次へ</button>
-  </div>
 
-  <!-- 結果 -->
-  <div id="results" class="card hidden">
-    <h2>結果</h2>
-    <pre id="output"></pre>
-  </div>
+    <!-- 結果 -->
+    <div id="results" class="card hidden">
+        <h2>結果</h2>
+        <pre id="output"></pre>
+    </div>
 
-<script>
-// ===== データ（フロント固定） =====
-     const data = [
+    <script>
+        // ===== データ（フロント固定） =====
+        const data = [
             {
                 number: 1805,
                 theme: "穏やか",
@@ -197,134 +283,138 @@
             }
         ];
 
-// ===== Baserow API =====
-const BASEROW_TOKEN = "SVcnEouj5wHXUFowYIUDGNqkGCEh1R02";
-const TABLE_ID = 683950;
+        // ===== Baserow API =====
+        const BASEROW_TOKEN = "SVcnEouj5wHXUFowYIUDGNqkGCEh1R02";
+        const TABLE_ID = 683950;
 
-async function fetchResponses() {
-  const res = await fetch(
-    `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`,
-    { headers: { Authorization: `Token ${BASEROW_TOKEN}` } }
-  );
-  return await res.json();
-}
+        async function fetchResponses() {
+            const res = await fetch(
+                `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`,
+                { headers: { Authorization: `Token ${BASEROW_TOKEN}` } }
+            );
+            return await res.json();
+        }
 
-// バランス選択
-async function getBalancedTrials(currentUser) {
-  const rows = await fetchResponses();
+        // バランス選択
+        async function getBalancedTrials(currentUser) {
+            const rows = await fetchResponses();
 
-  // 作曲者ごとの回答数
-  const countMap = {};
-  rows.results.forEach(r => { countMap[r.user_id] = (countMap[r.user_id]||0)+1; });
+            // 作曲者ごとの回答数
+            const countMap = {};
+            rows.results.forEach(r => { countMap[r.user_id] = (countMap[r.user_id] || 0) + 1; });
 
-  // 自分がすでに評価した作曲者を除外
-  const answered = rows.results.filter(r=>r.number===currentUser).map(r=>r.user_id);
-  const remaining = data.filter(d => !answered.includes(d.number));
+            // 自分がすでに評価した作曲者を除外
+            const answered = rows.results.filter(r => r.number === currentUser).map(r => r.user_id);
+            const remaining = data.filter(d => !answered.includes(d.number));
 
-  if (remaining.length===0) return [];
+            if (remaining.length === 0) return [];
 
-  const minCount = Math.min(...remaining.map(d=>countMap[d.number]||0));
-  const leastRated = remaining.filter(d=>(countMap[d.number]||0)===minCount);
+            const minCount = Math.min(...remaining.map(d => countMap[d.number] || 0));
+            const leastRated = remaining.filter(d => (countMap[d.number] || 0) === minCount);
 
-  return shuffle(leastRated).slice(0,8);
-}
+            return shuffle(leastRated).slice(0, 8);
+        }
 
-// シャッフル
-function shuffle(arr) {
-  return arr.map(v=>({v,sort:Math.random()})).sort((a,b)=>a.sort-b.sort).map(({v})=>v);
-}
+        // シャッフル
+        function shuffle(arr) {
+            return arr.map(v => ({ v, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(({ v }) => v);
+        }
 
-// Baserowに回答送信
-async function sendResultToBaserow(result) {
-  const res = await fetch(
-    `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`,
-    {
-      method:"POST",
-      headers:{ Authorization:`Token ${BASEROW_TOKEN}`, "Content-Type":"application/json" },
-      body:JSON.stringify({
-        user_id: result.user_id,   // 作曲者
-        listener_id: result.listener_id,// 回答者
-        instrument:result.instrument,
-        theme:result.theme,
-        naturalness: result.naturalness,
-        themematch: result.themematch
-      })
-    }
-  );
-  if (!res.ok) console.error("送信失敗", await res.text());
-  console.log(await res.text())
-}
+        // Baserowに回答送信
+        async function sendResultToBaserow(result) {
+            const res = await fetch(
+                `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`,
+                {
+                    method: "POST",
+                    headers: { Authorization: `Token ${BASEROW_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: result.user_id,   // 作曲者
+                        listener_id: result.listener_id,// 回答者
+                        instrument: result.instrument,
+                        theme: result.theme,
+                        naturalness: result.naturalness,
+                        themematch: result.themematch
+                    })
+                }
+            );
+            if (!res.ok) console.error("送信失敗", await res.text());
+            console.log(await res.text())
+        }
 
-// ===== 実験制御 =====
-let trials=[], currentIndex=0, results=[], currentResponderId=null;
+        // ===== 実験制御 =====
+        let trials = [], currentIndex = 0, results = [], currentResponderId = null;
 
-function createRatingInputs(containerId,name){
-  const c=document.getElementById(containerId); c.innerHTML="";
-  for(let i=1;i<=7;i++){
-    let l=document.createElement("label"), inp=document.createElement("input"), s=document.createElement("span");
-    inp.type="radio"; inp.name=name; inp.value=i; s.textContent=i;
-    l.appendChild(inp); l.appendChild(s); c.appendChild(l);
-  }
-}
-createRatingInputs("naturalness","naturalness");
-createRatingInputs("themeMatch","themeMatch");
+        function createRatingInputs(containerId, name) {
+            const c = document.getElementById(containerId); c.innerHTML = "";
+            for (let i = 1; i <= 7; i++) {
+                let l = document.createElement("label"), inp = document.createElement("input"), s = document.createElement("span");
+                inp.type = "radio"; inp.name = name; inp.value = i; s.textContent = i;
+                l.appendChild(inp); l.appendChild(s); c.appendChild(l);
+            }
+        }
+        createRatingInputs("naturalness", "naturalness");
+        createRatingInputs("themeMatch", "themeMatch");
 
-async function playChordProgression(midiChords){
-  await Tone.start();
-  const synth=new Tone.PolySynth(Tone.Synth).toDestination();
-  synth.volume.value=-4;
-  let now=Tone.now(), dur=1.1;
-  midiChords.forEach((ch,i)=>{
-    synth.triggerAttackRelease(ch.map(n=>Tone.Frequency(n,"midi").toNote()),dur,now+i*dur);
-  });
-}
+        async function playChordProgression(midiChords) {
+            await Tone.start();
+            const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            synth.volume.value = -4;
+            let now = Tone.now(), dur = 1.1;
+            midiChords.forEach((ch, i) => {
+                synth.triggerAttackRelease(ch.map(n => Tone.Frequency(n, "midi").toNote()), dur, now + i * dur);
+            });
+        }
 
-function showTrial(){
-  if(currentIndex>=trials.length){
-    document.getElementById("experiment").classList.add("hidden");
-    document.getElementById("results").classList.remove("hidden");
-    document.getElementById("output").textContent=JSON.stringify(results,null,2);
-    return;
-  }
-  const t=trials[currentIndex];
-  document.getElementById("theme").textContent=`テーマ: ${t.theme}`;
-  document.querySelectorAll("input[type=radio]").forEach(r=>r.checked=false);
-}
+        function showTrial() {
+            if (currentIndex >= trials.length) {
+                document.getElementById("experiment").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+                document.getElementById("output").textContent = JSON.stringify(results, null, 2);
+                return;
+            }
+            const t = trials[currentIndex];
+            document.getElementById("theme").textContent = `テーマ: ${t.theme}`;
+            document.querySelectorAll("input[type=radio]").forEach(r => r.checked = false);
+        }
 
-// 再生
-document.getElementById("playBtn").addEventListener("click",()=>{
-  playChordProgression(trials[currentIndex].midi);
-});
+        // 再生
+        document.getElementById("playBtn").addEventListener("click", () => {
+            playChordProgression(trials[currentIndex].midi);
+        });
 
-// 次へ
-document.getElementById("nextBtn").addEventListener("click",()=>{
-  let nat=document.querySelector("input[name=naturalness]:checked");
-  let theme=document.querySelector("input[name=themeMatch]:checked");
-  if(!nat||!theme){ alert("両方評価してください"); return; }
 
-  const t=trials[currentIndex];
-  let result={ user_id:t.number, listener_id:currentResponderId,
-               theme:t.theme, instrument:t.instrument,
-               naturalness:+nat.value, themematch:+theme.value };
-  results.push(result);
-  sendResultToBaserow(result);
-  currentIndex++; showTrial();
-});
+        // 次へ
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            let nat = document.querySelector("input[name=naturalness]:checked");
+            let theme = document.querySelector("input[name=themeMatch]:checked");
+            if (!nat || !theme) { alert("両方評価してください"); return; }
 
-// 確定
-document.getElementById("confirmBtn").addEventListener("click",async()=>{
-  const n=parseInt(document.getElementById("number").value,10);
-  if(isNaN(n)){ alert("番号を入力してください"); return; }
-  currentResponderId=n;
+            const t = trials[currentIndex];
+            let result = {
+                user_id: t.number, listener_id: currentResponderId,
+                theme: t.theme, instrument: t.instrument,
+                naturalness: +nat.value, themematch: +theme.value
+            };
+            results.push(result);
+            sendResultToBaserow(result);
+            currentIndex++; showTrial();
+        });
 
-  trials=await getBalancedTrials(n);
-  trials=trials.filter(t=>t.number!==n);
-  if(trials.length===0){ alert("全て評価済みです"); return; }
+        // 確定
+        document.getElementById("confirmBtn").addEventListener("click", async () => {
+            const n = parseInt(document.getElementById("number").value, 10);
+            if (isNaN(n)) { alert("番号を入力してください"); return; }
+            currentResponderId = n;
 
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("experiment").classList.remove("hidden");
-  showTrial();
-});
-</script>
+            trials = await getBalancedTrials(n);
+            trials = trials.filter(t => t.number !== n);
+            if (trials.length === 0) { alert("全て評価済みです"); return; }
+
+            document.getElementById("login").classList.add("hidden");
+            document.getElementById("experiment").classList.remove("hidden");
+            showTrial();
+        });
+    </script>
 </body>
+
 </html>
