@@ -182,7 +182,7 @@
         }
 
         .progression span:last-child {
-            color: #ff4800;
+            color: #ff6f00;
         }
 
         .mode {
@@ -984,12 +984,12 @@
                     }
                 }
                 let data = Object.entries(fifthCircleNumberMap).map(function ([f, data]) {
-                    if (data.attr === "minor" && !(5+now_key_index <= parseInt(f) + 3 && parseInt(f) + 3 <= 7+now_key_index)) {
+                    if (data.attr === "minor" && !(5 + now_key_index <= parseInt(f) + 3 && parseInt(f) + 3 <= 7 + now_key_index)) {
 
                     } else {
                         return (
                             {
-                                f: data.attr === "minor" ? (parseInt(f) + 3)%12 : parseInt(f)%12,
+                                f: data.attr === "minor" ? (parseInt(f) + 3) % 12 : parseInt(f) % 12,
                                 value: data.value * 100,
                                 attr: data.attr
                             })
@@ -1029,6 +1029,7 @@
                 this.root = keyToNumber(chord.root);
                 this.attr = chord.attr;
                 this.notes = []
+                this.tensionf = (fifthCircleNumberTensionMap[chord.tensions] + this.root) % 12
                 chords_type[this.attr].forEach((noteIndex, i) => {
                     let note = (this.root + noteIndex)
                     this.notes.push(note)
@@ -1039,6 +1040,7 @@
                 if (this.attr === "minor") {
                     this.notes = this.notes.map(n => (n + 3) % 12)
                 }
+                +console.log(this.tensionf)
             }
             get position() {
                 let positions = [];
@@ -1052,6 +1054,17 @@
             }
             renderLine() {
                 //background(0);
+                let x_p = this.position[this.notes[0]].x,
+                    y_p = this.position[this.notes[0]].y;
+                noStroke()
+                fill("#666")
+                if (this.tensionf){
+                let x_t = this.position[this.tensionf].x,
+                    y_t = this.position[this.tensionf].y
+                circle(x_t, y_t, 30)
+                }
+                fill("#ff4800")
+                circle(x_p, y_p, 30)
                 this.notes.forEach(note1 => {
                     note1 = (note1 + 12) % 12;
                     let x1 = this.position[note1].x,
@@ -1062,18 +1075,11 @@
                             let x2 = this.position[note2].x,
                                 y2 = this.position[note2].y;
                             stroke(240 * random(0.94, 1));
-                            strokeWeight(3);
+                            strokeWeight(2);
                             line(x1, y1, x2, y2);
                         }
                     })
                 })
-
-                /*
-                let x_p = this.position[this.notes[0]].x,
-                    y_p = this.position[this.notes[0]].y;
-                    noStroke()
-                    fill("#ff4800")
-                    circle(x_p,y_p,20)*/
             }
             renderChordName() {
                 const chord_name = stringifyChord(this.chord)
@@ -1317,7 +1323,7 @@
             el.style.display = 'block';
             setTimeout(() => {
                 el.style.display = 'none';
-            }, 1800);
+            }, 4800);
 
             const keyDiv = document.querySelector('.mode .key');
             if (keyDiv) keyDiv.innerHTML = `<img src='./assets/key.svg'> ${majorName}/${minorName}`;
@@ -1369,7 +1375,7 @@
             chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
             document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
         });*/
-        
+
         setInterval(() => {
             localStorage.setItem('chord_progression', JSON.stringify(chord_progression));
         }, 30000);
