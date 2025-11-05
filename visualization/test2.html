@@ -298,7 +298,7 @@
         }
 
         button {
-            cursor:none !important;
+            cursor: none !important;
         }
 
         .progression {
@@ -1061,10 +1061,14 @@
                     y_p = this.position[this.notes[0]].y;
                 noStroke()
                 fill("#666")
-                if (this.tensionf){
-                let x_t = this.position[this.tensionf].x,
-                    y_t = this.position[this.tensionf].y
-                circle(x_t, y_t, 30)
+                if (this.tensionf) {
+                    let t = 0;
+                    if(this.attr === "minor"){
+                        t+=3
+                    }
+                    let x_t = this.position[(this.tensionf+t)%12].x,
+                        y_t = this.position[(this.tensionf+t)%12].y
+                        circle(x_t, y_t, 30)
                 }
                 fill("#ff4800")
                 circle(x_p, y_p, 30)
