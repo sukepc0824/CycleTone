@@ -145,15 +145,6 @@ document.querySelector('.overlay').addEventListener('click', () => {
 const longPressThreshold = 500; // ミリ秒以上を長押しと判定
 let pressTimer = null;
 
-
-document.addEventListener('contextmenu', (event) => {
-    event.preventDefault(); // デフォルトの右クリックメニューを無効化
-    console.log('右クリック検知');
-    mode.main = "compose";
-    //circleText(chord_progression)
-});
-
-
 const listElement = document.querySelector(".list");
 for (let i = 0; i < 8; i++) {
     const chordDiv = document.createElement("div");

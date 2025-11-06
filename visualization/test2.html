@@ -1371,18 +1371,13 @@
             mode.main = 'suggestion'
         }
 
-
-        // 初期表示
         updateKeyNotification();
 
-        /*
-        document.querySelector(".overlay").addEventListener("click", () => {
-            const isMinorMode = mode.attr === "minor";
-            mode.attr = isMinorMode ? "major" : "minor";
-            chart = new Chart(chords.nextKeys(chord_progression, mode.attr))
-            document.querySelector(".mode .attr").innerHTML = `<img src="./assets/${mode.attr}.svg">${mode.attr}`
-        });*/
-
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            location.reload();
+        });
+        
         setInterval(() => {
             localStorage.setItem('chord_progression', JSON.stringify(chord_progression));
         }, 30000);
