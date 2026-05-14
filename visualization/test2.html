@@ -1056,6 +1056,14 @@
                 //background(0);
                 let x_p = this.position[this.notes[0]].x,
                     y_p = this.position[this.notes[0]].y;
+                this.notes.forEach(note2 => {
+                    note2 = (note2 + 12) % 12;
+                    let x2 = this.position[note2].x,
+                        y2 = this.position[note2].y;
+                    stroke(240 * random(0.84, 0.8));
+                    strokeWeight(3);
+                    line(240, 240, x2, y2);
+                })
                 noStroke()
                 fill("#666")
                 if (this.tensionf) {
@@ -1065,25 +1073,14 @@
                     }
                     let x_t = this.position[(this.tensionf+t)%12].x,
                         y_t = this.position[(this.tensionf+t)%12].y
-                        circle(x_t, y_t, 30)
+                        circle(x_t, y_t, 32)
                 }
+
+                noStroke()
                 fill("#ff4800")
-                circle(x_p, y_p, 30)
-                this.notes.forEach(note1 => {
-                    note1 = (note1 + 12) % 12;
-                    let x1 = this.position[note1].x,
-                        y1 = this.position[note1].y;
-                    this.notes.forEach(note2 => {
-                        note2 = (note2 + 12) % 12;
-                        if (note1 !== note2) {
-                            let x2 = this.position[note2].x,
-                                y2 = this.position[note2].y;
-                            stroke(240 * random(0.94, 1));
-                            strokeWeight(2);
-                            line(x1, y1, x2, y2);
-                        }
-                    })
-                })
+                circle(x_p, y_p, 32)
+                fill("#000")
+                circle(x_p, y_p, 7)
             }
             renderChordName() {
                 const chord_name = stringifyChord(this.chord)
